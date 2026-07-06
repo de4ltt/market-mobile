@@ -41,6 +41,7 @@ import ru.kubsu.market.ui.cringe.ScreenEvent.OnProductsForShelfRequested
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnShelvesForStorageLocationRequested
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnUpdateReport
 import ru.kubsu.market.ui.cringe.ScreenState
+import io.ktor.client.HttpClient
 import ru.kubsu.market.core.network.UserPreferencesRepository
 import ru.kubsu.market.core.network.userDataStore
 import ru.kubsu.market.feature.auth.AuthScreen
@@ -69,8 +70,22 @@ class MainActivity : ComponentActivity() {
 
         userPreferencesRepository =
             UserPreferencesRepository(dataStore = this@MainActivity.userDataStore)
+
+        val httpClientProvider = ru.kubsu.market.core.network.HttpClientProvider(userPrefs = userPreferencesRepository)
+        val httpClient = httpClientProvider.create()
+        val authRepository = ru.kubsu.market.core.network.AuthRepositoryImpl(
+            httpClient = httpClient,
+            userPrefs = userPreferencesRepository
+        )
+
         viewModel =
-            viewModels<AppViewModel> { AppViewModelFactory(userPreferencesRepository = userPreferencesRepository) }.value
+            viewModels<AppViewModel> {
+                AppViewModelFactory(
+                    userPreferencesRepository = userPreferencesRepository,
+                    authRepository = authRepository,
+                    httpClient = httpClient
+                )
+            }.value
 
         setContent {
             LaunchedEffect(Unit) {

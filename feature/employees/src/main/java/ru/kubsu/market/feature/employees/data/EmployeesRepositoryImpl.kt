@@ -22,9 +22,10 @@ import ru.kubsu.market.feature.employees.domain.EmployeesRepository
 class EmployeesRepositoryImpl(
     private val httpClient: HttpClient,
     private val employeeDao: EmployeeDao,
-    private val vacationDao: VacationDao,
-    private val baseUrl: String = "http://10.0.2.2:8080"
+    private val vacationDao: VacationDao
 ) : EmployeesRepository {
+
+    private val baseUrl = ru.kubsu.market.core.network.ApiConfig.BASE_URL
 
     override fun getEmployeesFlow(): Flow<List<Employee>> {
         return employeeDao.getEmployees().map { entities ->

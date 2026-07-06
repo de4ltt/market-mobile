@@ -42,7 +42,9 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
 class AppViewModel(
-    private val userPrefs: UserPreferencesRepository
+    private val userPrefs: UserPreferencesRepository,
+    private val authRepository: ru.kubsu.market.core.network.AuthRepository,
+    val httpClient: HttpClient
 ) : ViewModel(), IDictionaryFetcher {
 
     private val stateStack: ArrayDeque<ScreenState> = ArrayDeque()
@@ -140,7 +142,7 @@ class AppViewModel(
     private fun onLogOut() = proceedInCoroutine {
         clearStack()
         _state.value = ScreenState.Authorization
-        userPrefs.clearTokens()
+        authRepository.logout()
         refreshToken = null
         accessToken = null
         id = null
@@ -267,14 +269,7 @@ class AppViewModel(
 
     private fun onLogin(login: String, password: String) =
         proceedInCoroutine(withLoading = false) {
-            val response = httpClient.submitForm(
-                url = "$BASE_URL_GATE/login",
-                formParameters = parameters {
-                    append("employee_login", login)
-                    append("password", password)
-                }
-            ).body<TokenResponse>()
-            userPrefs.saveTokens(response.access_token, response.refresh_token)
+            val response = authRepository.login(login, password)
             accessToken = response.access_token
             refreshToken = response.refresh_token
 
@@ -416,65 +411,7 @@ class AppViewModel(
         _errorEvents.value = null
     }
 
-    val httpClient = HttpClient {
-        expectSuccess = true
 
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-            })
-        }
-
-        install(HttpTimeout) {
-            requestTimeoutMillis = 5000
-        }
-
-        install(Logging) {
-            logger = object : Logger {
-                override fun log(message: String) {
-                    println("HTTP LOG: $message")
-                }
-            }
-            level = LogLevel.ALL
-        }
-
-        install(Auth) {
-            bearer {
-                loadTokens {
-                    if (accessToken != null && refreshToken != null) {
-                        BearerTokens(accessToken!!, refreshToken!!)
-                    } else null
-                }
-                refreshTokens {
-                    val oldRefresh = oldTokens?.refreshToken
-                    if (oldRefresh == null) {
-                        userPrefs.clearTokens()
-                        accessToken = null
-                        refreshToken = null
-                        _state.value = ScreenState.Authorization
-                        null
-                    } else {
-                        try {
-                            val response = client.post("$BASE_URL_GATE/refresh") {
-                                contentType(ContentType.Application.Json)
-                                setBody(RefreshRequest(oldRefresh))
-                            }.body<TokenResponse>()
-                            userPrefs.saveTokens(response.access_token, response.refresh_token)
-                            accessToken = response.access_token
-                            refreshToken = response.refresh_token
-                            BearerTokens(response.access_token, response.refresh_token)
-                        } catch (e: Exception) {
-                            userPrefs.clearTokens()
-                            accessToken = null
-                            refreshToken = null
-                            _state.value = ScreenState.Authorization
-                            null
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     fun refresh() = proceedInCoroutine(withLoading = false) {
         val oldRefresh = refreshToken
@@ -483,17 +420,13 @@ class AppViewModel(
                 _state.value = ScreenState.Authorization
                 throw Exception("No refresh token")
             }
-            val response = httpClient.post("$BASE_URL_GATE/refresh") {
-                contentType(ContentType.Application.Json)
-                setBody(RefreshRequest(oldRefresh))
-            }.body<TokenResponse>()
-            userPrefs.saveTokens(response.access_token, response.refresh_token)
+            val response = authRepository.refresh(oldRefresh)
             accessToken = response.access_token
             refreshToken = response.refresh_token
             getMe()
             BearerTokens(response.access_token, response.refresh_token)
         } catch (e: Exception) {
-            userPrefs.clearTokens()
+            authRepository.logout()
             accessToken = null
             refreshToken = null
             _state.value = ScreenState.Authorization
@@ -506,8 +439,7 @@ class AppViewModel(
         getMeJob = viewModelScope.launch {
             _state.value = ScreenState.Loading
             try {
-                val response: UserResponse =
-                    httpClient.get("$BASE_URL_GATE/me").body<UserResponse>()
+                val response = authRepository.getMe()
                 id = response.id
                 this@AppViewModel.vacation =
                     httpClient.get("$BASE_URL/vacations/employee/$id").body<List<Vacation>>()
@@ -602,13 +534,15 @@ private const val BASE_URL_GATE = "http://10.114.84.195:8000"
 //private const val BASE_URL_GATE = "http://cp.ae-health.ru"
 
 class AppViewModelFactory(
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val authRepository: ru.kubsu.market.core.network.AuthRepository,
+    private val httpClient: HttpClient
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
-            return AppViewModel(userPreferencesRepository) as T
+            return AppViewModel(userPreferencesRepository, authRepository, httpClient) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
