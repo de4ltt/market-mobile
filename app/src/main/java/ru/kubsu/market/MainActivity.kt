@@ -59,6 +59,10 @@ import ru.kubsu.market.feature.receival.presentation.viewmodel.ReceivalViewModel
 import ru.kubsu.market.feature.receival.domain.usecase.GetReceivedProductsToResolveUseCase
 import ru.kubsu.market.feature.receival.domain.usecase.ResolveProductsUseCase
 import ru.kubsu.market.feature.receival.data.ReceivalRepositoryImpl
+import ru.kubsu.market.feature.dictionaries.presentation.viewmodel.DictionariesViewModel
+import ru.kubsu.market.feature.dictionaries.presentation.viewmodel.DictionariesViewModelFactory
+import ru.kubsu.market.feature.dictionaries.domain.usecase.GetDictionaryItemsUseCase
+import ru.kubsu.market.feature.dictionaries.data.DictionariesRepositoryImpl
 import ru.kubsu.market.feature.shift.ShiftScreen
 import ru.kubsu.market.core.ui.theme.Colors
 import java.time.ZoneId
@@ -115,6 +119,12 @@ class MainActivity : ComponentActivity() {
                 getReceivedProductsToResolveUseCase = getReceivedProductsToResolveUseCase,
                 resolveProductsUseCase = resolveProductsUseCase
             )
+        }.value
+
+        val dictionariesRepository = DictionariesRepositoryImpl(httpClient = httpClient)
+        val getDictionaryItemsUseCase = GetDictionaryItemsUseCase(repository = dictionariesRepository)
+        val dictionariesViewModel = viewModels<DictionariesViewModel> {
+            DictionariesViewModelFactory(getDictionaryItemsUseCase)
         }.value
 
         setContent {
@@ -331,7 +341,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
 
-                        ScreenState.Dictionaries -> DictionariesScreen(fetcher = viewModel)
+                        ScreenState.Dictionaries -> DictionariesScreen(viewModel = dictionariesViewModel)
                     }
                 }
             }

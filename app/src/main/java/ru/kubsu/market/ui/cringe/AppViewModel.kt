@@ -45,7 +45,7 @@ class AppViewModel(
     private val userPrefs: UserPreferencesRepository,
     private val authRepository: ru.kubsu.market.core.network.AuthRepository,
     val httpClient: HttpClient
-) : ViewModel(), IDictionaryFetcher {
+) : ViewModel() {
 
     private val stateStack: ArrayDeque<ScreenState> = ArrayDeque()
 
@@ -115,24 +115,7 @@ class AppViewModel(
         _orderFormed.value = true
     }
 
-    override fun getDictionaryItems(item: IDictionaryItem) {
-        when (item) {
-            is ContactPerson -> getDictionaryItems(item)
-            is Counterparty -> getDictionaryItems(item)
-            is SupplyContract -> getDictionaryItems(item)
-            is SupplyContractItem -> getDictionaryItems(item)
-            is Truck -> getDictionaryItems(item)
-        }
-    }
 
-    inline fun <reified T> getDictionaryItems(item: T)
-            where T : IDictionaryItem, T : IItemRepresentable = proceedInCoroutine {
-        val items = httpClient
-            .get("$BASE_URL/${item.endpoint}")
-            .body<List<T>>()
-
-        _state.value = ScreenState.Items(items, item.className)
-    }
 
     private fun onLogOut() = proceedInCoroutine {
         clearStack()
