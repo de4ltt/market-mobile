@@ -45,6 +45,58 @@ import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.component.AppButtonType
 import ru.kubsu.market.core.ui.theme.Colors
 import ru.kubsu.market.feature.employees.component.VacationEditDialog
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.collectAsState
+import ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftViewModel
+import ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftUiState
+
+@Composable
+fun ShiftScreen(
+    viewModel: ShiftViewModel,
+    onLogOut: () -> Unit,
+    onReportsRequested: (employeeId: Int) -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    when (val state = uiState) {
+        is ShiftUiState.Loading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Colors.DARK_BLUE)
+            }
+        }
+        is ShiftUiState.Error -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = state.message,
+                    color = Colors.RED,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        is ShiftUiState.Success -> {
+            val details = state.details
+            ShiftScreen(
+                employee = details.employee,
+                role = Role.findByRole(details.employee.role) ?: Role.FIRED,
+                hours = details.hours,
+                underwork = details.underwork,
+                overwork = details.overwork,
+                vacation = details.vacation,
+                onLogOut = onLogOut,
+                onVacationRequested = { viewModel.requestVacation(it) },
+                onReportsRequested = onReportsRequested
+            )
+        }
+    }
+}
 
 @Composable
 fun ShiftScreen(

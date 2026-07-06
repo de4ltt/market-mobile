@@ -62,7 +62,6 @@ class AppViewModel(
 
         is ScreenEvent.OnShelvesForStorageLocationRequested -> getShelvesForStorageLocation(event.storageLocationId)
         is ScreenEvent.OnProductsForShelfRequested -> getProductsForShelf(event.shelfId)
-        is ScreenEvent.OnVacationRequested -> onVacationRequested(vacation = event.vacation)
         is ScreenEvent.OnVacationResponseGiven -> onVacationResponseGiven(vacation = event.vacation)
         ScreenEvent.OnEmployeesRequested -> getEmployees()
         ScreenEvent.OnVacationsRequested -> getVacations()
@@ -243,13 +242,7 @@ class AppViewModel(
         _state.value = ScreenState.Employees.Vacations(vacations = result)
     }
 
-    private fun onVacationRequested(vacation: Vacation) = proceedInCoroutine(withLoading = false) {
-        this.vacation =
-            httpClient.post("$BASE_URL/vacations") {
-                contentType(ContentType.Application.Json)
-                setBody(vacation.copy(employeeId = id))
-            }.body<Vacation>()
-    }
+
 
     private fun onResolveProducts(
         toAccept: List<ReceivedProduct>,

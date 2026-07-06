@@ -92,6 +92,16 @@ class MainActivity : ComponentActivity() {
             ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModelFactory(loginUseCase)
         }.value
 
+        val shiftRepository = ru.kubsu.market.feature.shift.data.ShiftRepositoryImpl(httpClient = httpClient)
+        val getShiftDetailsUseCase = ru.kubsu.market.feature.shift.domain.usecase.GetShiftDetailsUseCase(repository = shiftRepository)
+        val requestShiftVacationUseCase = ru.kubsu.market.feature.shift.domain.usecase.RequestShiftVacationUseCase(repository = shiftRepository)
+        val shiftViewModel = viewModels<ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftViewModel> {
+            ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftViewModelFactory(
+                getShiftDetailsUseCase = getShiftDetailsUseCase,
+                requestShiftVacationUseCase = requestShiftVacationUseCase
+            )
+        }.value
+
         setContent {
             LaunchedEffect(Unit) {
                 viewModel.startMidnightSchedule(ZoneId.systemDefault())
@@ -184,19 +194,18 @@ class MainActivity : ComponentActivity() {
                         }
 
                         ScreenState.Loading -> LoadingScreen(modifier = Modifier.weight(1f))
-                        is ScreenState.Me -> ShiftScreen(
-                            employee = stateValue.me,
-                            role = stateValue.role,
-                            hours = stateValue.hours,
-                            underwork = stateValue.underwork,
-                            overwork = stateValue.overwork,
-                            vacation = stateValue.vacation,
-                            onLogOut = { viewModel.onEvent(ScreenEvent.OnLogOut) },
-                            onVacationRequested = { viewModel.onEvent(ScreenEvent.OnVacationRequested(it)) },
-                            onReportsRequested = { id ->
-                                viewModel.onEvent(ScreenEvent.OnReportsRequestedForEmployee(employeeId = id))
+                        is ScreenState.Me -> {
+                            LaunchedEffect(stateValue.me.employeeId) {
+                                shiftViewModel.loadProfile(stateValue.me.employeeId!!)
                             }
-                        )
+                            ShiftScreen(
+                                viewModel = shiftViewModel,
+                                onLogOut = { viewModel.onEvent(ScreenEvent.OnLogOut) },
+                                onReportsRequested = { id ->
+                                    viewModel.onEvent(ScreenEvent.OnReportsRequestedForEmployee(employeeId = id))
+                                }
+                            )
+                        }
 
                         is ScreenState.ResolveProducts -> ReceivalScreen(
                             toResolveList = stateValue.toResolveProducts,

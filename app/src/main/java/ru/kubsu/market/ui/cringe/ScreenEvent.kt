@@ -16,7 +16,6 @@ sealed interface ScreenEvent {
     data class OnDeleteEmployee(val employeeId: Int) : ScreenEvent
     data class OnShelvesForStorageLocationRequested(val storageLocationId: Int) : ScreenEvent
     data class OnProductsForShelfRequested(val shelfId: Int) : ScreenEvent
-    data class OnVacationRequested(val vacation: Vacation) : ScreenEvent
     data class OnVacationResponseGiven(val vacation: Vacation) : ScreenEvent
     data object OnEmployeesRequested : ScreenEvent
     data object OnVacationsRequested : ScreenEvent
