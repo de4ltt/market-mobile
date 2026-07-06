@@ -1,8 +1,9 @@
 package ru.kubsu.market.feature.products.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +28,8 @@ sealed interface ProductsUiState {
     data class Error(val message: String) : ProductsUiState
 }
 
-class ProductsViewModel(
+@HiltViewModel
+class ProductsViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
     private val getProductPricesUseCase: GetProductPricesUseCase,
     private val formOrderUseCase: FormOrderUseCase,
@@ -122,28 +124,4 @@ class ProductsViewModel(
         }
     }
 }
-
-class ProductsViewModelFactory(
-    private val getProductsUseCase: GetProductsUseCase,
-    private val getProductPricesUseCase: GetProductPricesUseCase,
-    private val formOrderUseCase: FormOrderUseCase,
-    private val getStorageLocationsUseCase: GetStorageLocationsUseCase,
-    private val getShelvesUseCase: GetShelvesUseCase,
-    private val getProductsForShelfUseCase: GetProductsForShelfUseCase
-) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ProductsViewModel::class.java)) {
-            return ProductsViewModel(
-                getProductsUseCase,
-                getProductPricesUseCase,
-                formOrderUseCase,
-                getStorageLocationsUseCase,
-                getShelvesUseCase,
-                getProductsForShelfUseCase
-              ) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
 }

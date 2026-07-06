@@ -2,7 +2,9 @@ package ru.kubsu.market.feature.employees.domain.usecase
 
 import ru.kubsu.market.feature.employees.domain.EmployeesRepository
 
-class DeleteEmployeeUseCase(
+import javax.inject.Inject
+
+class DeleteEmployeeUseCase @Inject constructor(
     private val repository: EmployeesRepository
 ) {
     suspend operator fun invoke(employeeId: Int) {

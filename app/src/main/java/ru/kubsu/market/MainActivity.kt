@@ -81,9 +81,11 @@ import ru.kubsu.market.feature.employees.domain.usecase.RefreshEmployeesUseCase
 import ru.kubsu.market.feature.employees.domain.usecase.RefreshVacationsUseCase
 import ru.kubsu.market.feature.employees.data.EmployeesRepositoryImpl
 import ru.kubsu.market.core.database.AppDatabase
+import dagger.hilt.android.AndroidEntryPoint
 import ru.kubsu.market.core.ui.theme.Colors
 import java.time.ZoneId
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     lateinit var userPreferencesRepository: UserPreferencesRepository

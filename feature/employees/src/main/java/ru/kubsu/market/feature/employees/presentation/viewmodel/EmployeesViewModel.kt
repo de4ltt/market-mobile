@@ -1,8 +1,9 @@
 package ru.kubsu.market.feature.employees.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +15,8 @@ import ru.kubsu.market.core.model.Vacation
 import ru.kubsu.market.feature.employees.EmployeesScreenState
 import ru.kubsu.market.feature.employees.domain.usecase.*
 
-class EmployeesViewModel(
+@HiltViewModel
+class EmployeesViewModel @Inject constructor(
     private val getEmployeesUseCase: GetEmployeesUseCase,
     private val getVacationsUseCase: GetVacationsUseCase,
     private val getPositionsUseCase: GetPositionsUseCase,
@@ -120,36 +122,5 @@ class EmployeesViewModel(
 
     fun clearError() {
         _error.value = null
-    }
-}
-
-class EmployeesViewModelFactory(
-    private val getEmployeesUseCase: GetEmployeesUseCase,
-    private val getVacationsUseCase: GetVacationsUseCase,
-    private val getPositionsUseCase: GetPositionsUseCase,
-    private val addEmployeeUseCase: AddEmployeeUseCase,
-    private val deleteEmployeeUseCase: DeleteEmployeeUseCase,
-    private val requestVacationUseCase: RequestVacationUseCase,
-    private val respondToVacationUseCase: RespondToVacationUseCase,
-    private val refreshEmployeesUseCase: RefreshEmployeesUseCase,
-    private val refreshVacationsUseCase: RefreshVacationsUseCase
-) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(EmployeesViewModel::class.java)) {
-            return EmployeesViewModel(
-                getEmployeesUseCase,
-                getVacationsUseCase,
-                getPositionsUseCase,
-                addEmployeeUseCase,
-                deleteEmployeeUseCase,
-                requestVacationUseCase,
-                respondToVacationUseCase,
-                refreshEmployeesUseCase,
-                refreshVacationsUseCase
-            ) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

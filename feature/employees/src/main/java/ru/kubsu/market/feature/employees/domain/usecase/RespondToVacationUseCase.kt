@@ -2,7 +2,9 @@ package ru.kubsu.market.feature.employees.domain.usecase
 
 import ru.kubsu.market.feature.employees.domain.EmployeesRepository
 
-class RespondToVacationUseCase(
+import javax.inject.Inject
+
+class RespondToVacationUseCase @Inject constructor(
     private val repository: EmployeesRepository
 ) {
     suspend operator fun invoke(vacationId: Int, approve: Boolean) {
