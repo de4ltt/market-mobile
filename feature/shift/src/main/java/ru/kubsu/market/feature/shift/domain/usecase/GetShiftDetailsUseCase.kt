@@ -4,7 +4,9 @@ import java.time.LocalDate
 import ru.kubsu.market.feature.shift.domain.ShiftRepository
 import ru.kubsu.market.feature.shift.domain.model.ShiftDetails
 
-class GetShiftDetailsUseCase(
+import javax.inject.Inject
+
+class GetShiftDetailsUseCase @Inject constructor(
     private val repository: ShiftRepository
 ) {
     suspend operator fun invoke(employeeId: Int): ShiftDetails {

@@ -1,8 +1,9 @@
 package ru.kubsu.market.feature.dictionaries.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +20,8 @@ sealed interface DictionariesUiState {
     data class Error(val message: String) : DictionariesUiState
 }
 
-class DictionariesViewModel(
+@HiltViewModel
+class DictionariesViewModel @Inject constructor(
     private val getDictionaryItemsUseCase: GetDictionaryItemsUseCase
 ) : ViewModel(), IDictionaryFetcher {
 
@@ -43,15 +45,3 @@ class DictionariesViewModel(
     }
 }
 
-class DictionariesViewModelFactory(
-    private val getDictionaryItemsUseCase: GetDictionaryItemsUseCase
-) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DictionariesViewModel::class.java)) {
-            return DictionariesViewModel(getDictionaryItemsUseCase) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

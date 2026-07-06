@@ -1,8 +1,9 @@
 package ru.kubsu.market.feature.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,8 @@ sealed interface AuthUiState {
     data class Error(val message: String) : AuthUiState
 }
 
-class AuthViewModel(
+@HiltViewModel
+class AuthViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase
 ) : ViewModel() {
 
@@ -36,15 +38,3 @@ class AuthViewModel(
     }
 }
 
-class AuthViewModelFactory(
-    private val loginUseCase: LoginUseCase
-) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-            return AuthViewModel(loginUseCase) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

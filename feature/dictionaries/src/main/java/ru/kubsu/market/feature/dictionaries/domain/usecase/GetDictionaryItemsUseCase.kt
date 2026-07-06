@@ -4,7 +4,9 @@ import ru.kubsu.market.core.model.IDictionaryItem
 import ru.kubsu.market.core.model.IItemRepresentable
 import ru.kubsu.market.feature.dictionaries.domain.DictionariesRepository
 
-class GetDictionaryItemsUseCase(
+import javax.inject.Inject
+
+class GetDictionaryItemsUseCase @Inject constructor(
     private val repository: DictionariesRepository
 ) {
     suspend operator fun invoke(item: IDictionaryItem): List<IItemRepresentable> {

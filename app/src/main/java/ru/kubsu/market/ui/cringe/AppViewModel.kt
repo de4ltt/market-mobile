@@ -41,7 +41,11 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
-class AppViewModel(
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
+@HiltViewModel
+class AppViewModel @Inject constructor(
     private val userPrefs: UserPreferencesRepository,
     private val authRepository: ru.kubsu.market.core.network.AuthRepository,
     val httpClient: HttpClient
@@ -401,22 +405,3 @@ data class UserResponse(
 const val BASE_URL = "http://10.114.84.195:8081"
 private const val BASE_URL_GATE = "http://10.114.84.195:8000"
 //private const val BASE_URL_GATE = "http://cp.ae-health.ru"
-
-class AppViewModelFactory(
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val authRepository: ru.kubsu.market.core.network.AuthRepository,
-    private val httpClient: HttpClient
-) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
-            return AppViewModel(
-                userPrefs = userPreferencesRepository,
-                authRepository = authRepository,
-                httpClient = httpClient
-            ) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

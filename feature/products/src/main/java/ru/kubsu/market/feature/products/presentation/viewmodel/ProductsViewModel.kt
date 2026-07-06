@@ -124,4 +124,3 @@ class ProductsViewModel @Inject constructor(
         }
     }
 }
-}

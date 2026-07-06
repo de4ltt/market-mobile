@@ -1,8 +1,9 @@
 package ru.kubsu.market.feature.receival.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +19,8 @@ sealed interface ReceivalUiState {
     data object Finished : ReceivalUiState
 }
 
-class ReceivalViewModel(
+@HiltViewModel
+class ReceivalViewModel @Inject constructor(
     private val getReceivedProductsToResolveUseCase: GetReceivedProductsToResolveUseCase,
     private val resolveProductsUseCase: ResolveProductsUseCase
 ) : ViewModel() {
@@ -55,16 +57,3 @@ class ReceivalViewModel(
     }
 }
 
-class ReceivalViewModelFactory(
-    private val getReceivedProductsToResolveUseCase: GetReceivedProductsToResolveUseCase,
-    private val resolveProductsUseCase: ResolveProductsUseCase
-) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ReceivalViewModel::class.java)) {
-            return ReceivalViewModel(getReceivedProductsToResolveUseCase, resolveProductsUseCase) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

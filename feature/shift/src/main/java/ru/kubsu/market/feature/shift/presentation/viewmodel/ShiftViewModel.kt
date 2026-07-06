@@ -1,8 +1,9 @@
 package ru.kubsu.market.feature.shift.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +19,8 @@ sealed interface ShiftUiState {
     data class Error(val message: String) : ShiftUiState
 }
 
-class ShiftViewModel(
+@HiltViewModel
+class ShiftViewModel @Inject constructor(
     private val getShiftDetailsUseCase: GetShiftDetailsUseCase,
     private val requestShiftVacationUseCase: RequestShiftVacationUseCase
 ) : ViewModel() {
@@ -54,16 +56,3 @@ class ShiftViewModel(
     }
 }
 
-class ShiftViewModelFactory(
-    private val getShiftDetailsUseCase: GetShiftDetailsUseCase,
-    private val requestShiftVacationUseCase: RequestShiftVacationUseCase
-) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ShiftViewModel::class.java)) {
-            return ShiftViewModel(getShiftDetailsUseCase, requestShiftVacationUseCase) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

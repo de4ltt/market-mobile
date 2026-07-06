@@ -37,16 +37,12 @@ import ru.kubsu.market.feature.products.presentation.screen.StorageScreen
 import ru.kubsu.market.feature.products.presentation.screen.ShelvesScreen
 import ru.kubsu.market.feature.products.presentation.screen.ShelfProductsScreen
 import ru.kubsu.market.ui.cringe.AppViewModel
-import ru.kubsu.market.ui.cringe.AppViewModelFactory
 import ru.kubsu.market.ui.cringe.ScreenEvent
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnBack
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnProductsForShelfRequested
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnShelvesForStorageLocationRequested
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnUpdateReport
 import ru.kubsu.market.ui.cringe.ScreenState
-import io.ktor.client.HttpClient
-import ru.kubsu.market.core.network.UserPreferencesRepository
-import ru.kubsu.market.core.network.userDataStore
 import ru.kubsu.market.feature.auth.AuthScreen
 import ru.kubsu.market.feature.dictionaries.DictionariesScreen
 import ru.kubsu.market.feature.employees.EmployeeScreen
@@ -58,29 +54,10 @@ import ru.kubsu.market.ui.screen.LoadingScreen
 import ru.kubsu.market.feature.mainmenu.MainMenuScreen
 import ru.kubsu.market.feature.receival.ReceivalScreen
 import ru.kubsu.market.feature.receival.presentation.viewmodel.ReceivalViewModel
-import ru.kubsu.market.feature.receival.presentation.viewmodel.ReceivalViewModelFactory
-import ru.kubsu.market.feature.receival.domain.usecase.GetReceivedProductsToResolveUseCase
-import ru.kubsu.market.feature.receival.domain.usecase.ResolveProductsUseCase
-import ru.kubsu.market.feature.receival.data.ReceivalRepositoryImpl
 import ru.kubsu.market.feature.dictionaries.presentation.viewmodel.DictionariesViewModel
-import ru.kubsu.market.feature.dictionaries.presentation.viewmodel.DictionariesViewModelFactory
-import ru.kubsu.market.feature.dictionaries.domain.usecase.GetDictionaryItemsUseCase
-import ru.kubsu.market.feature.dictionaries.data.DictionariesRepositoryImpl
 import ru.kubsu.market.feature.shift.ShiftScreen
 import ru.kubsu.market.feature.employees.EmployeesScreen
 import ru.kubsu.market.feature.employees.presentation.viewmodel.EmployeesViewModel
-import ru.kubsu.market.feature.employees.presentation.viewmodel.EmployeesViewModelFactory
-import ru.kubsu.market.feature.employees.domain.usecase.GetEmployeesUseCase
-import ru.kubsu.market.feature.employees.domain.usecase.GetVacationsUseCase
-import ru.kubsu.market.feature.employees.domain.usecase.GetPositionsUseCase
-import ru.kubsu.market.feature.employees.domain.usecase.AddEmployeeUseCase
-import ru.kubsu.market.feature.employees.domain.usecase.DeleteEmployeeUseCase
-import ru.kubsu.market.feature.employees.domain.usecase.RequestVacationUseCase
-import ru.kubsu.market.feature.employees.domain.usecase.RespondToVacationUseCase
-import ru.kubsu.market.feature.employees.domain.usecase.RefreshEmployeesUseCase
-import ru.kubsu.market.feature.employees.domain.usecase.RefreshVacationsUseCase
-import ru.kubsu.market.feature.employees.data.EmployeesRepositoryImpl
-import ru.kubsu.market.core.database.AppDatabase
 import dagger.hilt.android.AndroidEntryPoint
 import ru.kubsu.market.core.ui.theme.Colors
 import java.time.ZoneId
@@ -88,111 +65,17 @@ import java.time.ZoneId
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    lateinit var userPreferencesRepository: UserPreferencesRepository
-    lateinit var viewModel: AppViewModel
+    private val viewModel: AppViewModel by viewModels()
+    private val productsViewModel: ru.kubsu.market.feature.products.presentation.viewmodel.ProductsViewModel by viewModels()
+    private val authViewModel: ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModel by viewModels()
+    private val shiftViewModel: ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftViewModel by viewModels()
+    private val receivalViewModel: ReceivalViewModel by viewModels()
+    private val dictionariesViewModel: DictionariesViewModel by viewModels()
+    private val employeesViewModel: EmployeesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-
-        userPreferencesRepository =
-            UserPreferencesRepository(dataStore = this@MainActivity.userDataStore)
-
-        val httpClientProvider = ru.kubsu.market.core.network.HttpClientProvider(userPrefs = userPreferencesRepository)
-        val httpClient = httpClientProvider.create()
-        val authRepository = ru.kubsu.market.core.network.AuthRepositoryImpl(
-            httpClient = httpClient,
-            userPrefs = userPreferencesRepository
-        )
-
-        val productsRepository = ru.kubsu.market.feature.products.data.repository.ProductsRepositoryImpl(httpClient = httpClient)
-        val getProductsUseCase = ru.kubsu.market.feature.products.domain.usecase.GetProductsUseCase(repository = productsRepository)
-        val getProductPricesUseCase = ru.kubsu.market.feature.products.domain.usecase.GetProductPricesUseCase(repository = productsRepository)
-        val formOrderUseCase = ru.kubsu.market.feature.products.domain.usecase.FormOrderUseCase(repository = productsRepository)
-        val getStorageLocationsUseCase = ru.kubsu.market.feature.products.domain.usecase.GetStorageLocationsUseCase(repository = productsRepository)
-        val getShelvesUseCase = ru.kubsu.market.feature.products.domain.usecase.GetShelvesUseCase(repository = productsRepository)
-        val getProductsForShelfUseCase = ru.kubsu.market.feature.products.domain.usecase.GetProductsForShelfUseCase(repository = productsRepository)
-
-        viewModel =
-            viewModels<AppViewModel> {
-                AppViewModelFactory(
-                    userPreferencesRepository = userPreferencesRepository,
-                    authRepository = authRepository,
-                    httpClient = httpClient
-                )
-            }.value
-
-        val productsViewModel = viewModels<ru.kubsu.market.feature.products.presentation.viewmodel.ProductsViewModel> {
-            ru.kubsu.market.feature.products.presentation.viewmodel.ProductsViewModelFactory(
-                getProductsUseCase = getProductsUseCase,
-                getProductPricesUseCase = getProductPricesUseCase,
-                formOrderUseCase = formOrderUseCase,
-                getStorageLocationsUseCase = getStorageLocationsUseCase,
-                getShelvesUseCase = getShelvesUseCase,
-                getProductsForShelfUseCase = getProductsForShelfUseCase
-            )
-        }.value
-
-        val loginUseCase = ru.kubsu.market.feature.auth.domain.usecase.LoginUseCase(authRepository = authRepository)
-        val authViewModel = viewModels<ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModel> {
-            ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModelFactory(loginUseCase)
-        }.value
-
-        val shiftRepository = ru.kubsu.market.feature.shift.data.ShiftRepositoryImpl(httpClient = httpClient)
-        val getShiftDetailsUseCase = ru.kubsu.market.feature.shift.domain.usecase.GetShiftDetailsUseCase(repository = shiftRepository)
-        val requestShiftVacationUseCase = ru.kubsu.market.feature.shift.domain.usecase.RequestShiftVacationUseCase(repository = shiftRepository)
-        val shiftViewModel = viewModels<ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftViewModel> {
-            ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftViewModelFactory(
-                getShiftDetailsUseCase = getShiftDetailsUseCase,
-                requestShiftVacationUseCase = requestShiftVacationUseCase
-            )
-        }.value
-
-        val receivalRepository = ReceivalRepositoryImpl(httpClient = httpClient)
-        val getReceivedProductsToResolveUseCase = GetReceivedProductsToResolveUseCase(repository = receivalRepository)
-        val resolveProductsUseCase = ResolveProductsUseCase(repository = receivalRepository)
-        val receivalViewModel = viewModels<ReceivalViewModel> {
-            ReceivalViewModelFactory(
-                getReceivedProductsToResolveUseCase = getReceivedProductsToResolveUseCase,
-                resolveProductsUseCase = resolveProductsUseCase
-            )
-        }.value
-
-        val dictionariesRepository = DictionariesRepositoryImpl(httpClient = httpClient)
-        val getDictionaryItemsUseCase = GetDictionaryItemsUseCase(repository = dictionariesRepository)
-        val dictionariesViewModel = viewModels<DictionariesViewModel> {
-            DictionariesViewModelFactory(getDictionaryItemsUseCase)
-        }.value
-
-        val db = AppDatabase.getDatabase(applicationContext)
-        val employeesRepository = EmployeesRepositoryImpl(
-            httpClient = httpClient,
-            employeeDao = db.employeeDao(),
-            vacationDao = db.vacationDao()
-        )
-        val getEmployeesUseCase = GetEmployeesUseCase(repository = employeesRepository)
-        val getVacationsUseCase = GetVacationsUseCase(repository = employeesRepository)
-        val getPositionsUseCase = GetPositionsUseCase(repository = employeesRepository)
-        val addEmployeeUseCase = AddEmployeeUseCase(repository = employeesRepository)
-        val deleteEmployeeUseCase = DeleteEmployeeUseCase(repository = employeesRepository)
-        val requestVacationUseCase = RequestVacationUseCase(repository = employeesRepository)
-        val respondToVacationUseCase = RespondToVacationUseCase(repository = employeesRepository)
-        val refreshEmployeesUseCase = RefreshEmployeesUseCase(repository = employeesRepository)
-        val refreshVacationsUseCase = RefreshVacationsUseCase(repository = employeesRepository)
-        val employeesViewModel = viewModels<EmployeesViewModel> {
-            EmployeesViewModelFactory(
-                getEmployeesUseCase = getEmployeesUseCase,
-                getVacationsUseCase = getVacationsUseCase,
-                getPositionsUseCase = getPositionsUseCase,
-                addEmployeeUseCase = addEmployeeUseCase,
-                deleteEmployeeUseCase = deleteEmployeeUseCase,
-                requestVacationUseCase = requestVacationUseCase,
-                respondToVacationUseCase = respondToVacationUseCase,
-                refreshEmployeesUseCase = refreshEmployeesUseCase,
-                refreshVacationsUseCase = refreshVacationsUseCase
-            )
-        }.value
 
         setContent {
             LaunchedEffect(Unit) {
