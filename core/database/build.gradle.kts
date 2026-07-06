@@ -1,11 +1,11 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.ksp)
 }
 
 android {
-    namespace = "ru.kubsu.market.core.network"
+    namespace = "ru.kubsu.market.core.database"
     compileSdk = 36
 
     defaultConfig {
@@ -26,15 +26,8 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
 
-    implementation(libs.androidx.datastore)
-    implementation(libs.androidx.datastore.preferences)
-
     implementation(libs.androidx.core.ktx)
-    api(libs.ktor.client.core)
-    api(libs.ktor.client.cio)
-    api(libs.ktor.client.auth)
-    api(libs.ktor.client.content.negotiation)
-    api(libs.ktor.client.okhttp)
-    api(libs.ktor.client.logging)
-    api(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 }
