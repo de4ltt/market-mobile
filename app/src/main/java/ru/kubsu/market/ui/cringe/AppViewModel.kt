@@ -69,15 +69,6 @@ class AppViewModel @Inject constructor(
             stateStack.add(_state.value)
             _state.value = ScreenState.ShelfProducts(event.shelfId)
         }
-        ScreenEvent.OnReportsConfirm -> onReportsConfirm()
-        ScreenEvent.OnReportsRequested -> onReportsRequested()
-        is ScreenEvent.OnReportsRequestedForEmployee -> onEmployeeReportsRequested(event.employeeId)
-        is ScreenEvent.OnUpdateReport -> onUpdateReport(
-            reportId = event.reportId,
-            request = event.request,
-            reports = event.reports
-        )
-
         ScreenEvent.OnCheckIn -> onCheckIn()
         ScreenEvent.OnCheckOut -> onCheckOut()
         ScreenEvent.OnZeroOvertimeCheckOut -> onZeroOvertimeCheckOut()
@@ -131,48 +122,6 @@ class AppViewModel @Inject constructor(
         _errorEvents.value = "Конец работы в ${result.checkOut.toString().replace('T', ' ')}"
     }
 
-    private fun onUpdateReport(
-        reports: List<PersonnelReport>,
-        reportId: Int,
-        request: ConfirmReportRequest
-    ) = proceedInCoroutine {
-        val directorId = requireNotNull(id) { "Director id is required" }
-
-        val updated: PersonnelReport = httpClient.post("$BASE_URL/reports/$reportId/update") {
-            url { parameters.append("directorId", directorId.toString()) }
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body()
-
-        val mutableReports = reports.toMutableList()
-        mutableReports[reports.indexOfFirst { it.personnelReportId == reportId }] = updated
-        _state.value = ScreenState.Reports(reports = mutableReports)
-    }
-
-    private fun onReportsConfirm() = proceedInCoroutine {
-        val directorId = requireNotNull(id) { "Director id is required" }
-
-        httpClient.post("$BASE_URL/reports/confirm-current-week") {
-            url { parameters.append("directorId", directorId.toString()) }
-        }.body<String>()
-
-        onReportsRequested()
-    }
-
-    private fun onEmployeeReportsRequested(employeeId: Int) = proceedInCoroutine {
-        val reports: List<PersonnelReport> =
-            httpClient.get("$BASE_URL/reports/employee/$employeeId").body()
-
-        _state.value = ScreenState.Reports(reports = reports)
-    }
-
-    private fun onReportsRequested() = proceedInCoroutine {
-        val reports: List<PersonnelReport> =
-            httpClient.get("$BASE_URL/reports/current-week").body()
-
-        _state.value = ScreenState.Reports(reports = reports)
-    }
-
 
 
 
@@ -204,7 +153,10 @@ class AppViewModel @Inject constructor(
             }
             MenuCategory.EMPLOYEES -> getEmployees()
             MenuCategory.MY_SHIFT -> getMyShift()
-            MenuCategory.REPORT -> onReportsRequested()
+            MenuCategory.REPORT -> {
+                stateStack.add(_state.value)
+                _state.value = ScreenState.Reports(employeeId = null)
+            }
             MenuCategory.DICTIONARIES -> {
                 _state.value = ScreenState.Dictionaries
             }
@@ -242,6 +194,11 @@ class AppViewModel @Inject constructor(
             role = _role.value!!,
             daysAvailable = vacationDays ?: 28
         )
+    }
+
+    fun navigateTo(state: ScreenState) {
+        stateStack.add(_state.value)
+        _state.value = state
     }
 
     private fun onBack() {

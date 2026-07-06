@@ -1,4 +1,4 @@
-package ru.kubsu.market.ui.component
+package ru.kubsu.market.feature.employees.presentation.reports
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,14 +27,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import ru.kubsu.market.R
 import ru.kubsu.market.core.model.ConfirmReportRequest
 import ru.kubsu.market.core.model.PersonnelReport
-import ru.kubsu.market.core.model.PersonnelReportStatus
 import ru.kubsu.market.core.ui.theme.Colors
-import ru.kubsu.market.core.ui.component.AppButton
 import java.math.BigDecimal
-import kotlin.text.iterator
 
 @Composable
 fun ReportRepresentationCard(
@@ -70,7 +66,7 @@ fun ReportRepresentationCard(
                     indication = null,
                     interactionSource = null
                 ),
-            painter = painterResource(R.drawable.pencil),
+            painter = painterResource(ru.kubsu.market.core.ui.R.drawable.pencil),
             tint = Colors.LIGHT_BLUE,
             contentDescription = "delete_icon"
         )
@@ -159,7 +155,7 @@ fun ConfirmReportRequestDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     supportingText = {
                         if (manualUnderworkText.isBlank()) Text("Без изменений")
-                        else if (!underworkOk) Text("Введите число (например, 1 или 1.5)")
+                        else if (!underworkOk) Text("Введите число (например, 1 or 1.5)")
                     }
                 )
             }

@@ -3,6 +3,7 @@ package ru.kubsu.market
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import javax.inject.Inject
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -29,7 +30,6 @@ import ru.kubsu.market.core.model.Shelf
 import ru.kubsu.market.core.model.StorageLocation
 import ru.kubsu.market.ui.component.LogoWithRole
 import ru.kubsu.market.ui.component.MidnightQuestionDialog
-import ru.kubsu.market.ui.component.ReportRepresentationCard
 import ru.kubsu.market.ui.component.ShelfEditDialog
 import ru.kubsu.market.ui.component.StorageLocationEditDialog
 import ru.kubsu.market.feature.products.presentation.screen.ProductsScreen
@@ -41,7 +41,6 @@ import ru.kubsu.market.ui.cringe.ScreenEvent
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnBack
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnProductsForShelfRequested
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnShelvesForStorageLocationRequested
-import ru.kubsu.market.ui.cringe.ScreenEvent.OnUpdateReport
 import ru.kubsu.market.ui.cringe.ScreenState
 import ru.kubsu.market.feature.auth.AuthScreen
 import ru.kubsu.market.feature.dictionaries.DictionariesScreen
@@ -72,6 +71,10 @@ class MainActivity : ComponentActivity() {
     private val receivalViewModel: ReceivalViewModel by viewModels()
     private val dictionariesViewModel: DictionariesViewModel by viewModels()
     private val employeesViewModel: EmployeesViewModel by viewModels()
+    private val reportsViewModel: ru.kubsu.market.feature.employees.presentation.reports.ReportsViewModel by viewModels()
+
+    @Inject
+    lateinit var sessionManager: ru.kubsu.market.core.network.SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -174,7 +177,7 @@ class MainActivity : ComponentActivity() {
                                     viewModel.onEvent(ScreenEvent.OnLogOut)
                                 },
                                 onReportsRequested = { id ->
-                                    viewModel.onEvent(ScreenEvent.OnReportsRequestedForEmployee(employeeId = id))
+                                    viewModel.navigateTo(ScreenState.Reports(employeeId = id))
                                 }
                             )
                         }
@@ -238,32 +241,12 @@ class MainActivity : ComponentActivity() {
                             EmployeesScreen(viewModel = employeesViewModel)
                         }
 
-                        is ScreenState.Reports ->
-                            ItemsRepresentationScreen(
-                                items = stateValue.reports,
-                                className = PersonnelReport.className,
-                                buttonText = "Утвердить отчёты",
-                                buttonEnabled = stateValue.reports.isNotEmpty(),
-                                onButtonClick = {
-                                    viewModel.onEvent(
-                                        ScreenEvent.OnReportsConfirm
-                                    )
-                                },
-                                container = { report ->
-                                    ReportRepresentationCard(
-                                        report = report as PersonnelReport,
-                                        onEdit = { cRequest ->
-                                            viewModel.onEvent(
-                                                OnUpdateReport(
-                                                    reports = stateValue.reports,
-                                                    reportId = report.personnelReportId!!,
-                                                    request = cRequest
-                                                )
-                                            )
-                                        }
-                                    )
-                                }
+                        is ScreenState.Reports -> {
+                            ru.kubsu.market.feature.employees.presentation.reports.ReportsScreen(
+                                viewModel = reportsViewModel,
+                                employeeId = stateValue.employeeId
                             )
+                        }
 
                         ScreenState.Dictionaries -> DictionariesScreen(viewModel = dictionariesViewModel)
                     }

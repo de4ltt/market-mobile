@@ -36,6 +36,5 @@ sealed interface ScreenState {
 
     data object ResolveProducts : ScreenState
 
-    data class Reports(val reports: List<PersonnelReport>): ScreenState
-//    data class EmployeeReports(val reports: List<PersonnelReport>): ScreenState
+    data class Reports(val employeeId: Int? = null) : ScreenState
 }
