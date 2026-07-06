@@ -54,6 +54,11 @@ import ru.kubsu.market.core.ui.component.ItemsRepresentationScreen
 import ru.kubsu.market.ui.screen.LoadingScreen
 import ru.kubsu.market.feature.mainmenu.MainMenuScreen
 import ru.kubsu.market.feature.receival.ReceivalScreen
+import ru.kubsu.market.feature.receival.presentation.viewmodel.ReceivalViewModel
+import ru.kubsu.market.feature.receival.presentation.viewmodel.ReceivalViewModelFactory
+import ru.kubsu.market.feature.receival.domain.usecase.GetReceivedProductsToResolveUseCase
+import ru.kubsu.market.feature.receival.domain.usecase.ResolveProductsUseCase
+import ru.kubsu.market.feature.receival.data.ReceivalRepositoryImpl
 import ru.kubsu.market.feature.shift.ShiftScreen
 import ru.kubsu.market.core.ui.theme.Colors
 import java.time.ZoneId
@@ -99,6 +104,16 @@ class MainActivity : ComponentActivity() {
             ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftViewModelFactory(
                 getShiftDetailsUseCase = getShiftDetailsUseCase,
                 requestShiftVacationUseCase = requestShiftVacationUseCase
+            )
+        }.value
+
+        val receivalRepository = ReceivalRepositoryImpl(httpClient = httpClient)
+        val getReceivedProductsToResolveUseCase = GetReceivedProductsToResolveUseCase(repository = receivalRepository)
+        val resolveProductsUseCase = ResolveProductsUseCase(repository = receivalRepository)
+        val receivalViewModel = viewModels<ReceivalViewModel> {
+            ReceivalViewModelFactory(
+                getReceivedProductsToResolveUseCase = getReceivedProductsToResolveUseCase,
+                resolveProductsUseCase = resolveProductsUseCase
             )
         }.value
 
@@ -207,17 +222,18 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        is ScreenState.ResolveProducts -> ReceivalScreen(
-                            toResolveList = stateValue.toResolveProducts,
-                            onProductsResolved = { accepted, refused ->
-                                viewModel.onEvent(
-                                    ScreenEvent.OnProductsResolved(
-                                        acceptedProducts = accepted,
-                                        refusedProducts = refused
-                                    )
-                                )
+                        ScreenState.ResolveProducts -> {
+                            LaunchedEffect(Unit) {
+                                receivalViewModel.loadProducts()
                             }
-                        )
+                            ReceivalScreen(
+                                viewModel = receivalViewModel,
+                                employeeId = viewModel.id ?: 0,
+                                onFinished = {
+                                    viewModel.onEvent(OnBack)
+                                }
+                            )
+                        }
 
                         is ScreenState.Storage -> ItemsRepresentationScreen(
                             items = stateValue.items,

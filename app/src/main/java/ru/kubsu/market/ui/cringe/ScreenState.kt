@@ -41,7 +41,7 @@ sealed interface ScreenState {
         val role: Role
     ) : ScreenState
 
-    data class ResolveProducts(val toResolveProducts: List<ReceivedProduct>) : ScreenState
+    data object ResolveProducts : ScreenState
 
     data class Reports(val reports: List<PersonnelReport>): ScreenState
 //    data class EmployeeReports(val reports: List<PersonnelReport>): ScreenState

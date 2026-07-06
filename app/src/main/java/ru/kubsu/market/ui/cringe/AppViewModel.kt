@@ -55,10 +55,7 @@ class AppViewModel(
     fun onEvent(event: ScreenEvent) = when (event) {
         is ScreenEvent.OnMenuCategorySelected -> onMenuCategorySelected(menuCategory = event.menuCategory)
         ScreenEvent.OnBack -> onBack()
-        is ScreenEvent.OnProductsResolved -> onResolveProducts(
-            toAccept = event.acceptedProducts,
-            toRefuse = event.refusedProducts
-        )
+
 
         is ScreenEvent.OnShelvesForStorageLocationRequested -> getShelvesForStorageLocation(event.storageLocationId)
         is ScreenEvent.OnProductsForShelfRequested -> getProductsForShelf(event.shelfId)
@@ -244,20 +241,7 @@ class AppViewModel(
 
 
 
-    private fun onResolveProducts(
-        toAccept: List<ReceivedProduct>,
-        toRefuse: List<ReceivedProduct>
-    ) = proceedInCoroutine {
-        /*httpClient.post("$BASE_URL/received-products/reject") {
-            contentType(ContentType.Application.Json)
-            setBody(toRefuse)
-        }
-        httpClient.post("$BASE_URL/received-products/$id/accept") {
-            contentType(ContentType.Application.Json)
-            setBody(toAccept)
-        }*/
-        _state.value = ScreenState.MainMenu
-    }
+
 
     private suspend fun getWorkDaysForEmployee(employeeId: Int): List<WorkDay> {
         val workDays = httpClient.get("$BASE_URL/time-tracking/$employeeId/work-days") {
@@ -319,10 +303,9 @@ class AppViewModel(
         _state.value = ScreenState.Storage(items = storageLocations)
     }
 
-    private fun getReceival() = proceedInCoroutine {
-        val products =
-            httpClient.get("$BASE_URL/received-products/to-resolve").body<List<ReceivedProduct>>()
-        _state.value = ScreenState.ResolveProducts(toResolveProducts = products)
+    private fun getReceival() {
+        stateStack.add(_state.value)
+        _state.value = ScreenState.ResolveProducts
     }
 
     private fun getProducts() = proceedInCoroutine {

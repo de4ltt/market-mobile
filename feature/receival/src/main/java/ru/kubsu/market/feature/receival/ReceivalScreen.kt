@@ -10,10 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,9 +31,61 @@ import ru.kubsu.market.core.model.ReceivedProduct
 import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.component.AppButtonType
 import ru.kubsu.market.core.ui.theme.Colors
+import ru.kubsu.market.feature.receival.presentation.viewmodel.ReceivalUiState
+import ru.kubsu.market.feature.receival.presentation.viewmodel.ReceivalViewModel
 
 @Composable
 fun ReceivalScreen(
+    viewModel: ReceivalViewModel,
+    employeeId: Int,
+    onFinished: () -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState) {
+        if (uiState is ReceivalUiState.Finished) {
+            onFinished()
+        }
+    }
+
+    when (val state = uiState) {
+        is ReceivalUiState.Loading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Colors.DARK_BLUE)
+            }
+        }
+        is ReceivalUiState.Success -> {
+            ReceivalScreenContent(
+                toResolveList = state.toResolveList,
+                onProductsResolved = { accepted, refused ->
+                    viewModel.resolveProducts(accepted, refused, employeeId)
+                }
+            )
+        }
+        is ReceivalUiState.Error -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = state.message,
+                    color = Colors.WHITE,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        is ReceivalUiState.Finished -> {
+            // Handled in LaunchedEffect
+        }
+    }
+}
+
+@Composable
+fun ReceivalScreenContent(
     toResolveList: List<ReceivedProduct>,
     onProductsResolved: (acceptedProducts: List<ReceivedProduct>, refusedProducts: List<ReceivedProduct>) -> Unit
 ) {

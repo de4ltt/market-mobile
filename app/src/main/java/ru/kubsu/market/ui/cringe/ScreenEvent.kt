@@ -19,10 +19,7 @@ sealed interface ScreenEvent {
     data class OnVacationResponseGiven(val vacation: Vacation) : ScreenEvent
     data object OnEmployeesRequested : ScreenEvent
     data object OnVacationsRequested : ScreenEvent
-    data class OnProductsResolved(
-        val acceptedProducts: List<ReceivedProduct>,
-        val refusedProducts: List<ReceivedProduct>
-    ) : ScreenEvent
+
 
     data object OnBack : ScreenEvent
 
