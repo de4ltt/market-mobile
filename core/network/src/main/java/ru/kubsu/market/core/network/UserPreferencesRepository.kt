@@ -1,4 +1,4 @@
-package ru.kubsu.market.ui.cringe
+package ru.kubsu.market.core.network
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -6,14 +6,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 private const val USER_PREFERENCES_NAME = "user_preferences"
 

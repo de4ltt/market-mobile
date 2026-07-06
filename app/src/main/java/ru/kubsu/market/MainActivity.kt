@@ -41,9 +41,9 @@ import ru.kubsu.market.ui.cringe.ScreenEvent.OnProductsForShelfRequested
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnShelvesForStorageLocationRequested
 import ru.kubsu.market.ui.cringe.ScreenEvent.OnUpdateReport
 import ru.kubsu.market.ui.cringe.ScreenState
-import ru.kubsu.market.ui.cringe.UserPreferencesRepository
-import ru.kubsu.market.ui.cringe.userDataStore
-import ru.kubsu.market.ui.screen.AuthScreen
+import ru.kubsu.market.core.network.UserPreferencesRepository
+import ru.kubsu.market.core.network.userDataStore
+import ru.kubsu.market.feature.auth.AuthScreen
 import ru.kubsu.market.ui.screen.DictionariesScreen
 import ru.kubsu.market.ui.screen.EmployeeScreen
 import ru.kubsu.market.ui.screen.ItemRepresentationCard
@@ -118,7 +118,9 @@ class MainActivity : ComponentActivity() {
                     targetState = state
                 ) { stateValue ->
                     when (stateValue) {
-                        ScreenState.Authorization -> AuthScreen(onEvent = viewModel::onEvent)
+                        ScreenState.Authorization -> AuthScreen(onLogin = { login, password ->
+                            viewModel.onEvent(ScreenEvent.OnLogin(login, password))
+                        })
                         is ScreenState.Items -> ItemsRepresentationScreen(
                             items = stateValue.items,
                             className = stateValue.className

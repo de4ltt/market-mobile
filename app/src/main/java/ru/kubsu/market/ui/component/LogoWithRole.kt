@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.kubsu.market.R
+import ru.kubsu.market.core.ui.R as CoreUiR
 import ru.kubsu.market.core.model.Role
 import ru.kubsu.market.core.ui.theme.Colors
 
@@ -31,7 +31,7 @@ fun LogoWithRole(
         .wrapContentHeight()
 ) {
     Image(
-        painter = painterResource(R.drawable.logo),
+        painter = painterResource(CoreUiR.drawable.logo),
         modifier = Modifier
             .align(Alignment.CenterStart)
             .height(60.dp),

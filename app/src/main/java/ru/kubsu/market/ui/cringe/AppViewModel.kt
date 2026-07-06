@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import ru.kubsu.market.core.model.*
+import ru.kubsu.market.core.network.UserPreferencesRepository
 import ru.kubsu.market.core.model.pricing.PriceFormationResult
 import ru.kubsu.market.ui.screen.MenuCategory
 import java.time.Duration

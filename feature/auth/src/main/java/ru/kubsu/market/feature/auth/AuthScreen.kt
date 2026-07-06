@@ -1,4 +1,4 @@
-package ru.kubsu.market.ui.screen
+package ru.kubsu.market.feature.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,14 +30,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.kubsu.market.R
-import ru.kubsu.market.ui.cringe.ScreenEvent
+import ru.kubsu.market.core.ui.R
 import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun AuthScreen(
-    onEvent: (ScreenEvent) -> Unit
+    onLogin: (String, String) -> Unit
 ) = Column(
     modifier = Modifier
         .fillMaxSize()
@@ -101,7 +100,6 @@ fun AuthScreen(
                     color = Colors.GRAY
                 ),
                 singleLine = true,
-
                 onValueChange = { login = it }
             ) { innerTextField ->
                 Box {
@@ -130,7 +128,6 @@ fun AuthScreen(
                     color = Colors.GRAY
                 ),
                 singleLine = true,
-
                 onValueChange = { password = it }
             ) { innerTextField ->
                 Box {
@@ -144,13 +141,12 @@ fun AuthScreen(
                     else innerTextField()
                 }
             }
-
         }
 
         AppButton(
             enabled = login.isNotEmpty() && password.isNotEmpty(),
             modifier = Modifier.fillMaxWidth(0.85f),
-            onClick = { onEvent(ScreenEvent.OnLogin(login = login, password = password)) },
+            onClick = { onLogin(login, password) },
             text = "Войти"
         )
     }
