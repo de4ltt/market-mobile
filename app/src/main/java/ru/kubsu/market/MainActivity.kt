@@ -44,7 +44,7 @@ import ru.kubsu.market.ui.cringe.ScreenState
 import ru.kubsu.market.core.network.UserPreferencesRepository
 import ru.kubsu.market.core.network.userDataStore
 import ru.kubsu.market.feature.auth.AuthScreen
-import ru.kubsu.market.ui.screen.DictionariesScreen
+import ru.kubsu.market.feature.dictionaries.DictionariesScreen
 import ru.kubsu.market.feature.employees.EmployeeScreen
 import ru.kubsu.market.feature.employees.EmployeesScreenState
 import ru.kubsu.market.core.model.ItemRepresentationCard
@@ -285,7 +285,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
 
-                        ScreenState.Dictionaries -> DictionariesScreen(viewModel = viewModel)
+                        ScreenState.Dictionaries -> DictionariesScreen(fetcher = viewModel)
                     }
                 }
             }

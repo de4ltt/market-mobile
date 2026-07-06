@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":feature:mainmenu"))
     implementation(project(":feature:shift"))
     implementation(project(":feature:receival"))
+    implementation(project(":feature:dictionaries"))
 
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)

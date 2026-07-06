@@ -1,4 +1,4 @@
-package ru.kubsu.market.ui.screen
+package ru.kubsu.market.feature.dictionaries
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,17 +30,17 @@ import ru.kubsu.market.core.model.Counterparty
 import ru.kubsu.market.core.model.SupplyContract
 import ru.kubsu.market.core.model.SupplyContractItem
 import ru.kubsu.market.core.model.Truck
-import ru.kubsu.market.ui.cringe.AppViewModel
+import ru.kubsu.market.core.model.IDictionaryFetcher
 import ru.kubsu.market.core.ui.theme.Colors
 import java.math.BigDecimal
 import java.time.LocalDate
 
 @Composable
-fun DictionariesScreen(viewModel: AppViewModel) = Column(
+fun DictionariesScreen(fetcher: IDictionaryFetcher) = Column(
     verticalArrangement = Arrangement.spacedBy(20.dp)
 ) {
     Text(
-        text = "Другие словари",
+        text = "Другие справочники",
         fontSize = 25.sp,
         fontWeight = FontWeight.Black,
         color = Colors.WHITE
@@ -59,7 +59,7 @@ fun DictionariesScreen(viewModel: AppViewModel) = Column(
             SupplyContractItem(supplyContractId = -1, productId = -1, deliveryType = ""),
             Truck(licencePlate = "", model = "", capacity = BigDecimal.ONE, driverId = -1)
         ).forEach {
-            DictionaryItemCard(modifier = Modifier.weight(1f), title = it.className) { it.getItems(viewModel) }
+            DictionaryItemCard(modifier = Modifier.weight(1f), title = it.className) { it.getItems(fetcher) }
         }
     }
 }
@@ -102,5 +102,4 @@ private fun DictionaryItemCard(
             ),
         tint = Colors.DARK_BLUE
     )
-
 }
