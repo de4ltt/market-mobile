@@ -14,4 +14,5 @@ interface EmployeesRepository {
     suspend fun addEmployee(employee: Employee)
     suspend fun deleteEmployee(employeeId: Int)
     suspend fun requestVacation(vacation: Vacation)
+    suspend fun respondToVacation(vacationId: Int, approve: Boolean)
 }

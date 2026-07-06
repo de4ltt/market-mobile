@@ -77,4 +77,12 @@ class EmployeesRepositoryImpl(
         }.body<Vacation>()
         vacationDao.insertVacation(VacationEntity.fromDomain(created))
     }
+
+    override suspend fun respondToVacation(vacationId: Int, approve: Boolean) {
+        val path = if (approve) "approve" else "decline"
+        val updated = httpClient.post("$baseUrl/vacations/$vacationId/$path") {
+            contentType(ContentType.Application.Json)
+        }.body<Vacation>()
+        vacationDao.insertVacation(VacationEntity.fromDomain(updated))
+    }
 }

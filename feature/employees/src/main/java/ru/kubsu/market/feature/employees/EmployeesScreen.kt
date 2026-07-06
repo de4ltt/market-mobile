@@ -32,6 +32,27 @@ import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.component.AppButtonType
 import ru.kubsu.market.core.ui.theme.Colors
 import ru.kubsu.market.feature.employees.component.EmployeeEditDialog
+import ru.kubsu.market.feature.employees.presentation.viewmodel.EmployeesViewModel
+import androidx.compose.runtime.collectAsState
+
+@Composable
+fun EmployeesScreen(
+    viewModel: EmployeesViewModel
+) {
+    val state by viewModel.state.collectAsState()
+
+    EmployeeScreen(
+        state = state,
+        onTabSelected = { isVacations ->
+            if (isVacations) viewModel.loadVacations() else viewModel.loadEmployees()
+        },
+        onDeleteEmployee = { viewModel.deleteEmployee(it) },
+        onAddEmployee = { viewModel.addEmployee(it) },
+        onVacationResponse = { vacation ->
+            viewModel.respondToVacation(vacation.vacationId!!, vacation.approved)
+        }
+    )
+}
 
 sealed interface EmployeesScreenState {
     data class Employees(val employees: List<Employee>, val positions: List<Position>) : EmployeesScreenState
