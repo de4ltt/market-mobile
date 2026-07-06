@@ -28,16 +28,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ru.kubsu.market.R
-import ru.kubsu.market.model.ConfirmReportRequest
-import ru.kubsu.market.model.PersonnelReport
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.model.ConfirmReportRequest
+import ru.kubsu.market.core.model.PersonnelReport
+import ru.kubsu.market.core.model.PersonnelReportStatus
+import ru.kubsu.market.core.ui.theme.Colors
+import ru.kubsu.market.core.ui.component.AppButton
 import java.math.BigDecimal
 import kotlin.text.iterator
-
-enum class PersonnelReportStatus(val title: String) {
-    DRAFT("Черновой"),
-    CONFIRMED("Утверждённый")
-}
 
 @Composable
 fun ReportRepresentationCard(

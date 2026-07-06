@@ -39,12 +39,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.kubsu.market.R
-import ru.kubsu.market.model.Role
-import ru.kubsu.market.ui.component.AppButton
-import ru.kubsu.market.ui.component.AppButtonType
+import ru.kubsu.market.core.model.Role
+import ru.kubsu.market.core.ui.component.AppButton
+import ru.kubsu.market.core.ui.component.AppButtonType
 import ru.kubsu.market.ui.cringe.AppViewModel
 import ru.kubsu.market.ui.cringe.ScreenEvent
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.ui.theme.Colors
 import java.time.LocalTime
 
 enum class MenuCategory(

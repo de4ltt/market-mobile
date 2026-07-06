@@ -6,7 +6,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun LoadingScreen(

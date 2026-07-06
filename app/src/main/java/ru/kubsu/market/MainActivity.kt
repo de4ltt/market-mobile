@@ -23,10 +23,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import ru.kubsu.market.model.PersonnelReport
-import ru.kubsu.market.model.Product
-import ru.kubsu.market.model.Shelf
-import ru.kubsu.market.model.StorageLocation
+import ru.kubsu.market.core.model.PersonnelReport
+import ru.kubsu.market.core.model.Product
+import ru.kubsu.market.core.model.Shelf
+import ru.kubsu.market.core.model.StorageLocation
 import ru.kubsu.market.ui.component.LogoWithRole
 import ru.kubsu.market.ui.component.MidnightQuestionDialog
 import ru.kubsu.market.ui.component.ProductRepresentationCard
@@ -53,7 +53,7 @@ import ru.kubsu.market.ui.screen.LoadingScreen
 import ru.kubsu.market.ui.screen.MainMenuScreen
 import ru.kubsu.market.ui.screen.ReceivalScreen
 import ru.kubsu.market.ui.screen.ShiftScreen
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.ui.theme.Colors
 import java.time.ZoneId
 
 class MainActivity : ComponentActivity() {

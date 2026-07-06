@@ -24,11 +24,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.kubsu.market.model.ReceivedProduct
-import ru.kubsu.market.ui.component.AppButton
-import ru.kubsu.market.ui.component.AppButtonType
+import ru.kubsu.market.core.model.ReceivedProduct
+import ru.kubsu.market.core.ui.component.AppButton
+import ru.kubsu.market.core.ui.component.AppButtonType
 import ru.kubsu.market.ui.cringe.ScreenEvent
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun ReceivalScreen(

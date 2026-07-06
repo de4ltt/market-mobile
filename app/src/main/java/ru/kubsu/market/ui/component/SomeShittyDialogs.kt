@@ -17,12 +17,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import ru.kubsu.market.model.Employee
-import ru.kubsu.market.model.Position
-import ru.kubsu.market.model.Role
-import ru.kubsu.market.model.Shelf
-import ru.kubsu.market.model.StorageLocation
-import ru.kubsu.market.model.Vacation
+import ru.kubsu.market.core.model.Employee
+import ru.kubsu.market.core.model.Position
+import ru.kubsu.market.core.model.Role
+import ru.kubsu.market.core.model.Shelf
+import ru.kubsu.market.core.model.StorageLocation
+import ru.kubsu.market.core.model.Vacation
+import ru.kubsu.market.core.model.VacationType
+import ru.kubsu.market.core.ui.component.AppButton
 import java.time.LocalDate
 import java.time.LocalDate as JavaLocalDate
 
@@ -607,10 +609,6 @@ private fun StorageLocationDropdown(
             }
         }
     }
-}
-enum class VacationType(val title: String) {
-    VACATION("Стандартный"),
-    SICK_LEAVE("Больничный");
 }
 
 @Composable

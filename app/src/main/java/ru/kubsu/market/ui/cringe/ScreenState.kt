@@ -1,16 +1,16 @@
 package ru.kubsu.market.ui.cringe
 
-import ru.kubsu.market.model.Employee
-import ru.kubsu.market.model.IItemRepresentable
-import ru.kubsu.market.model.PersonnelReport
-import ru.kubsu.market.model.Position
-import ru.kubsu.market.model.Product
-import ru.kubsu.market.model.ProductPrice
-import ru.kubsu.market.model.ReceivedProduct
-import ru.kubsu.market.model.Role
-import ru.kubsu.market.model.Shelf
-import ru.kubsu.market.model.StorageLocation
-import ru.kubsu.market.model.Vacation
+import ru.kubsu.market.core.model.Employee
+import ru.kubsu.market.core.model.IItemRepresentable
+import ru.kubsu.market.core.model.PersonnelReport
+import ru.kubsu.market.core.model.Position
+import ru.kubsu.market.core.model.Product
+import ru.kubsu.market.core.model.ProductPrice
+import ru.kubsu.market.core.model.ReceivedProduct
+import ru.kubsu.market.core.model.Role
+import ru.kubsu.market.core.model.Shelf
+import ru.kubsu.market.core.model.StorageLocation
+import ru.kubsu.market.core.model.Vacation
 
 sealed interface ScreenState {
     data object Loading : ScreenState

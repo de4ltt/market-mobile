@@ -25,14 +25,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.StateFlow
-import ru.kubsu.market.model.Employee
-import ru.kubsu.market.model.Vacation
-import ru.kubsu.market.ui.component.AppButton
-import ru.kubsu.market.ui.component.AppButtonType
+import ru.kubsu.market.core.model.Employee
+import ru.kubsu.market.core.model.Vacation
+import ru.kubsu.market.core.ui.component.AppButton
+import ru.kubsu.market.core.ui.component.AppButtonType
 import ru.kubsu.market.ui.component.EmployeeEditDialog
 import ru.kubsu.market.ui.cringe.ScreenEvent
 import ru.kubsu.market.ui.cringe.ScreenState
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun EmployeeScreen(

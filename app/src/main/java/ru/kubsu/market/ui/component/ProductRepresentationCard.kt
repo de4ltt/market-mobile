@@ -20,10 +20,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import ru.kubsu.market.model.Product
-import ru.kubsu.market.model.ProductPrice
-import ru.kubsu.market.model.pricing.PriceFormationResult
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.model.Product
+import ru.kubsu.market.core.model.ProductPrice
+import ru.kubsu.market.core.model.pricing.PriceFormationResult
+import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun ProductRepresentationCard(

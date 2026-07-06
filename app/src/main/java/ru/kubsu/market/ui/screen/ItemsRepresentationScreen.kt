@@ -33,9 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.kubsu.market.R
-import ru.kubsu.market.model.IItemRepresentable
-import ru.kubsu.market.ui.component.AppButton
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.model.IItemRepresentable
+import ru.kubsu.market.core.ui.component.AppButton
+import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun ItemsRepresentationScreen(

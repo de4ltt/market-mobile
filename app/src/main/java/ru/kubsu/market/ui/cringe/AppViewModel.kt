@@ -31,21 +31,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import ru.kubsu.market.model.ConfirmReportRequest
-import ru.kubsu.market.model.Employee
-import ru.kubsu.market.model.IDictionaryItem
-import ru.kubsu.market.model.IItemRepresentable
-import ru.kubsu.market.model.PersonnelReport
-import ru.kubsu.market.model.Position
-import ru.kubsu.market.model.Product
-import ru.kubsu.market.model.ProductPrice
-import ru.kubsu.market.model.ReceivedProduct
-import ru.kubsu.market.model.Role
-import ru.kubsu.market.model.Shelf
-import ru.kubsu.market.model.StorageLocation
-import ru.kubsu.market.model.Vacation
-import ru.kubsu.market.model.WorkDay
-import ru.kubsu.market.model.pricing.PriceFormationResult
+import ru.kubsu.market.core.model.*
+import ru.kubsu.market.core.model.pricing.PriceFormationResult
 import ru.kubsu.market.ui.screen.MenuCategory
 import java.time.Duration
 import java.time.LocalDate
@@ -55,7 +42,7 @@ import java.time.temporal.ChronoUnit
 
 class AppViewModel(
     private val userPrefs: UserPreferencesRepository
-) : ViewModel() {
+) : ViewModel(), IDictionaryFetcher {
 
     private val stateStack: ArrayDeque<ScreenState> = ArrayDeque()
 
@@ -130,6 +117,15 @@ class AppViewModel(
         _orderFormed.value = true
     }
 
+    override fun getDictionaryItems(item: IDictionaryItem) {
+        when (item) {
+            is ContactPerson -> getDictionaryItems(item)
+            is Counterparty -> getDictionaryItems(item)
+            is SupplyContract -> getDictionaryItems(item)
+            is SupplyContractItem -> getDictionaryItems(item)
+            is Truck -> getDictionaryItems(item)
+        }
+    }
 
     inline fun <reified T> getDictionaryItems(item: T)
             where T : IDictionaryItem, T : IItemRepresentable = proceedInCoroutine {

@@ -18,8 +18,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.kubsu.market.R
-import ru.kubsu.market.model.Role
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.model.Role
+import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun LogoWithRole(

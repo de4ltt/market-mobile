@@ -25,13 +25,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.kubsu.market.R
-import ru.kubsu.market.model.ContactPerson
-import ru.kubsu.market.model.Counterparty
-import ru.kubsu.market.model.SupplyContract
-import ru.kubsu.market.model.SupplyContractItem
-import ru.kubsu.market.model.Truck
+import ru.kubsu.market.core.model.ContactPerson
+import ru.kubsu.market.core.model.Counterparty
+import ru.kubsu.market.core.model.SupplyContract
+import ru.kubsu.market.core.model.SupplyContractItem
+import ru.kubsu.market.core.model.Truck
 import ru.kubsu.market.ui.cringe.AppViewModel
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.ui.theme.Colors
 import java.math.BigDecimal
 import java.time.LocalDate
 

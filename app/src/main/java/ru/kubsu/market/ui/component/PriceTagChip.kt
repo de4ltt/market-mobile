@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.kubsu.market.model.pricing.PriceFormationResult
+import ru.kubsu.market.core.model.pricing.PriceFormationResult
 import java.math.BigDecimal
 import java.text.DecimalFormat
 

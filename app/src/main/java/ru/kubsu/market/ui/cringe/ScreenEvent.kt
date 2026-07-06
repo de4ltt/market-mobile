@@ -1,11 +1,11 @@
 package ru.kubsu.market.ui.cringe
 
 import androidx.compose.ui.input.pointer.PointerId
-import ru.kubsu.market.model.ConfirmReportRequest
-import ru.kubsu.market.model.Employee
-import ru.kubsu.market.model.PersonnelReport
-import ru.kubsu.market.model.ReceivedProduct
-import ru.kubsu.market.model.Vacation
+import ru.kubsu.market.core.model.ConfirmReportRequest
+import ru.kubsu.market.core.model.Employee
+import ru.kubsu.market.core.model.PersonnelReport
+import ru.kubsu.market.core.model.ReceivedProduct
+import ru.kubsu.market.core.model.Vacation
 import ru.kubsu.market.ui.screen.MenuCategory
 
 sealed interface ScreenEvent {

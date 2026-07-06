@@ -15,7 +15,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ru.kubsu.market.ui.theme.Colors
+import ru.kubsu.market.core.ui.component.AppButton
+import ru.kubsu.market.core.ui.component.AppButtonType
+import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun MidnightQuestionDialog(
