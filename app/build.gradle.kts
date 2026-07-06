@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":feature:auth"))
     implementation(project(":feature:employees"))
     implementation(project(":feature:mainmenu"))
+    implementation(project(":feature:shift"))
 
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)

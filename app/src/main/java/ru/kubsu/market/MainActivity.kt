@@ -53,7 +53,7 @@ import ru.kubsu.market.core.model.ItemsRepresentationScreen
 import ru.kubsu.market.ui.screen.LoadingScreen
 import ru.kubsu.market.feature.mainmenu.MainMenuScreen
 import ru.kubsu.market.ui.screen.ReceivalScreen
-import ru.kubsu.market.ui.screen.ShiftScreen
+import ru.kubsu.market.feature.shift.ShiftScreen
 import ru.kubsu.market.core.ui.theme.Colors
 import java.time.ZoneId
 
@@ -165,12 +165,16 @@ class MainActivity : ComponentActivity() {
                         ScreenState.Loading -> LoadingScreen(modifier = Modifier.weight(1f))
                         is ScreenState.Me -> ShiftScreen(
                             employee = stateValue.me,
+                            role = stateValue.role,
                             hours = stateValue.hours,
                             underwork = stateValue.underwork,
                             overwork = stateValue.overwork,
                             vacation = stateValue.vacation,
-                            onEvent = viewModel::onEvent,
-                            role = stateValue.role
+                            onLogOut = { viewModel.onEvent(ScreenEvent.OnLogOut) },
+                            onVacationRequested = { viewModel.onEvent(ScreenEvent.OnVacationRequested(it)) },
+                            onReportsRequested = { id ->
+                                viewModel.onEvent(ScreenEvent.OnReportsRequestedForEmployee(employeeId = id))
+                            }
                         )
 
                         is ScreenState.ResolveProducts -> ReceivalScreen(

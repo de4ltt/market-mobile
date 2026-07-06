@@ -24,7 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.kubsu.market.R
+import ru.kubsu.market.core.ui.R as CoreUiR
 import ru.kubsu.market.core.model.ContactPerson
 import ru.kubsu.market.core.model.Counterparty
 import ru.kubsu.market.core.model.SupplyContract
@@ -86,7 +86,7 @@ private fun DictionaryItemCard(
     )
 
     Icon(
-        painter = painterResource(R.drawable.arrow_left),
+        painter = painterResource(CoreUiR.drawable.arrow_left),
         contentDescription = "",
         modifier = Modifier
             .align(Alignment.CenterEnd)

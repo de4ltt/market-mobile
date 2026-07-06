@@ -1,9 +1,8 @@
-package ru.kubsu.market.ui.screen
+package ru.kubsu.market.feature.shift
 
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,15 +37,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.kubsu.market.R
 import ru.kubsu.market.core.model.Employee
 import ru.kubsu.market.core.model.Role
 import ru.kubsu.market.core.model.Vacation
+import ru.kubsu.market.core.ui.R as CoreUiR
 import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.component.AppButtonType
-import ru.kubsu.market.feature.employees.component.VacationEditDialog
-import ru.kubsu.market.ui.cringe.ScreenEvent
 import ru.kubsu.market.core.ui.theme.Colors
+import ru.kubsu.market.feature.employees.component.VacationEditDialog
 
 @Composable
 fun ShiftScreen(
@@ -56,7 +54,9 @@ fun ShiftScreen(
     underwork: Int,
     overwork: Int,
     vacation: Vacation?,
-    onEvent: (ScreenEvent) -> Unit
+    onLogOut: () -> Unit,
+    onVacationRequested: (Vacation) -> Unit,
+    onReportsRequested: (employeeId: Int) -> Unit
 ) {
 
     var isVacationDialogOpen by remember { mutableStateOf(false) }
@@ -67,7 +67,7 @@ fun ShiftScreen(
         VacationEditDialog(
             onDismiss = { isVacationDialogOpen = false },
             onConfirm = {
-                onEvent(ScreenEvent.OnVacationRequested(it))
+                onVacationRequested(it)
                 isVacationDialogOpen = false
             }
         )
@@ -89,7 +89,7 @@ fun ShiftScreen(
             )
 
             Icon(
-                painter = painterResource(R.drawable.arrow_left),
+                painter = painterResource(CoreUiR.drawable.arrow_left),
                 contentDescription = "",
                 modifier = Modifier
                     .padding(end = 5.dp)
@@ -97,7 +97,7 @@ fun ShiftScreen(
                     .fillMaxHeight()
                     .scale(1.5f)
                     .clickable(
-                        onClick = { onEvent(ScreenEvent.OnLogOut) },
+                        onClick = onLogOut,
                         indication = null,
                         interactionSource = null
                     ),
@@ -134,7 +134,7 @@ fun ShiftScreen(
                     ) {
                         IconWithTextBlock(
                             modifier = Modifier.aspectRatio(1f),
-                            iconRes = R.drawable.passport,
+                            iconRes = CoreUiR.drawable.passport,
                             text = mapOf(
                                 "Серия" to employee.passportSeries,
                                 "Номер" to employee.passportNumber
@@ -148,7 +148,7 @@ fun ShiftScreen(
                     ) {
                         IconWithTextBlock(
                             modifier = Modifier.aspectRatio(1f),
-                            iconRes = R.drawable.tractor,
+                            iconRes = CoreUiR.drawable.tractor,
                             text = mapOf(
                                 "Роль" to role.title,
                                 "Отделение" to employee.department
@@ -188,7 +188,7 @@ fun ShiftScreen(
                     text = "Отчёты",
                     buttonType = AppButtonType.DEFAULT,
                     onClick = {
-                        onEvent(ScreenEvent.OnReportsRequestedForEmployee(employeeId = employee.employeeId!!))
+                        onReportsRequested(employee.employeeId!!)
                     }
                 )
             }
