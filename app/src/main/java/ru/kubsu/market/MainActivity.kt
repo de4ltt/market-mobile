@@ -52,7 +52,7 @@ import ru.kubsu.market.core.model.ItemRepresentationCardExpanded
 import ru.kubsu.market.core.model.ItemsRepresentationScreen
 import ru.kubsu.market.ui.screen.LoadingScreen
 import ru.kubsu.market.feature.mainmenu.MainMenuScreen
-import ru.kubsu.market.ui.screen.ReceivalScreen
+import ru.kubsu.market.feature.receival.ReceivalScreen
 import ru.kubsu.market.feature.shift.ShiftScreen
 import ru.kubsu.market.core.ui.theme.Colors
 import java.time.ZoneId
@@ -179,7 +179,14 @@ class MainActivity : ComponentActivity() {
 
                         is ScreenState.ResolveProducts -> ReceivalScreen(
                             toResolveList = stateValue.toResolveProducts,
-                            onEvent = viewModel::onEvent
+                            onProductsResolved = { accepted, refused ->
+                                viewModel.onEvent(
+                                    ScreenEvent.OnProductsResolved(
+                                        acceptedProducts = accepted,
+                                        refusedProducts = refused
+                                    )
+                                )
+                            }
                         )
 
                         is ScreenState.Storage -> ItemsRepresentationScreen(

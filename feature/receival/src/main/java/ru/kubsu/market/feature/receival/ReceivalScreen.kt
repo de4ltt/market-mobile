@@ -1,4 +1,4 @@
-package ru.kubsu.market.ui.screen
+package ru.kubsu.market.feature.receival
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,21 +27,20 @@ import androidx.compose.ui.unit.sp
 import ru.kubsu.market.core.model.ReceivedProduct
 import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.component.AppButtonType
-import ru.kubsu.market.ui.cringe.ScreenEvent
 import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun ReceivalScreen(
     toResolveList: List<ReceivedProduct>,
-    onEvent: (ScreenEvent) -> Unit
+    onProductsResolved: (acceptedProducts: List<ReceivedProduct>, refusedProducts: List<ReceivedProduct>) -> Unit
 ) {
 
     var isDialogVisible by remember {
         mutableStateOf(false)
     }
 
-    val toAccept = mutableListOf<ReceivedProduct>()
-    val toRefuse = mutableListOf<ReceivedProduct>()
+    val toAccept = remember { mutableListOf<ReceivedProduct>() }
+    val toRefuse = remember { mutableListOf<ReceivedProduct>() }
 
     var curIndex by remember {
         mutableStateOf(
@@ -50,14 +49,14 @@ fun ReceivalScreen(
     }
 
     fun nextProduct() {
-        if (curIndex == toResolveList.lastIndex)
-            onEvent(
-                ScreenEvent.OnProductsResolved(
-                    acceptedProducts = toAccept,
-                    refusedProducts = toRefuse
-                )
+        if (curIndex == toResolveList.lastIndex) {
+            onProductsResolved(
+                toAccept,
+                toRefuse
             )
-        else curIndex = curIndex?.plus(1)
+        } else {
+            curIndex = curIndex?.plus(1)
+        }
     }
 
     var curProduct: ReceivedProduct? = null
@@ -85,21 +84,21 @@ fun ReceivalScreen(
                     .padding(vertical = 25.dp, horizontal = 35.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                curProduct.product.FullContent()
+                curProduct!!.product.FullContent()
 
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     AppButton(
                         modifier = Modifier.fillMaxWidth(),
                         text = "Принять",
                         onClick = {
-                            toAccept.add(curProduct)
+                            toAccept.add(curProduct!!)
                             nextProduct()
                         }
                     )
 
                     AppButton(
                         modifier = Modifier.fillMaxWidth(),
-                        text = "Списать",
+                        text = "Списано",
                         buttonType = AppButtonType.NEGATIVE,
                         onClick = {
                             isDialogVisible = true
@@ -122,7 +121,7 @@ fun ReceivalScreen(
         onCancel = { isDialogVisible = false },
         onProceed = { string ->
             curProduct?.let {
-                val withComment = curProduct.copy(comment = string)
+                val withComment = it.copy(comment = string)
                 toRefuse.add(withComment)
                 isDialogVisible = false
                 nextProduct()
