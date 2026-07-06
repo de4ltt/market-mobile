@@ -67,6 +67,20 @@ import ru.kubsu.market.feature.dictionaries.presentation.viewmodel.DictionariesV
 import ru.kubsu.market.feature.dictionaries.domain.usecase.GetDictionaryItemsUseCase
 import ru.kubsu.market.feature.dictionaries.data.DictionariesRepositoryImpl
 import ru.kubsu.market.feature.shift.ShiftScreen
+import ru.kubsu.market.feature.employees.EmployeesScreen
+import ru.kubsu.market.feature.employees.presentation.viewmodel.EmployeesViewModel
+import ru.kubsu.market.feature.employees.presentation.viewmodel.EmployeesViewModelFactory
+import ru.kubsu.market.feature.employees.domain.usecase.GetEmployeesUseCase
+import ru.kubsu.market.feature.employees.domain.usecase.GetVacationsUseCase
+import ru.kubsu.market.feature.employees.domain.usecase.GetPositionsUseCase
+import ru.kubsu.market.feature.employees.domain.usecase.AddEmployeeUseCase
+import ru.kubsu.market.feature.employees.domain.usecase.DeleteEmployeeUseCase
+import ru.kubsu.market.feature.employees.domain.usecase.RequestVacationUseCase
+import ru.kubsu.market.feature.employees.domain.usecase.RespondToVacationUseCase
+import ru.kubsu.market.feature.employees.domain.usecase.RefreshEmployeesUseCase
+import ru.kubsu.market.feature.employees.domain.usecase.RefreshVacationsUseCase
+import ru.kubsu.market.feature.employees.data.EmployeesRepositoryImpl
+import ru.kubsu.market.core.database.AppDatabase
 import ru.kubsu.market.core.ui.theme.Colors
 import java.time.ZoneId
 
@@ -148,6 +162,35 @@ class MainActivity : ComponentActivity() {
         val getDictionaryItemsUseCase = GetDictionaryItemsUseCase(repository = dictionariesRepository)
         val dictionariesViewModel = viewModels<DictionariesViewModel> {
             DictionariesViewModelFactory(getDictionaryItemsUseCase)
+        }.value
+
+        val db = AppDatabase.getDatabase(applicationContext)
+        val employeesRepository = EmployeesRepositoryImpl(
+            httpClient = httpClient,
+            employeeDao = db.employeeDao(),
+            vacationDao = db.vacationDao()
+        )
+        val getEmployeesUseCase = GetEmployeesUseCase(repository = employeesRepository)
+        val getVacationsUseCase = GetVacationsUseCase(repository = employeesRepository)
+        val getPositionsUseCase = GetPositionsUseCase(repository = employeesRepository)
+        val addEmployeeUseCase = AddEmployeeUseCase(repository = employeesRepository)
+        val deleteEmployeeUseCase = DeleteEmployeeUseCase(repository = employeesRepository)
+        val requestVacationUseCase = RequestVacationUseCase(repository = employeesRepository)
+        val respondToVacationUseCase = RespondToVacationUseCase(repository = employeesRepository)
+        val refreshEmployeesUseCase = RefreshEmployeesUseCase(repository = employeesRepository)
+        val refreshVacationsUseCase = RefreshVacationsUseCase(repository = employeesRepository)
+        val employeesViewModel = viewModels<EmployeesViewModel> {
+            EmployeesViewModelFactory(
+                getEmployeesUseCase = getEmployeesUseCase,
+                getVacationsUseCase = getVacationsUseCase,
+                getPositionsUseCase = getPositionsUseCase,
+                addEmployeeUseCase = addEmployeeUseCase,
+                deleteEmployeeUseCase = deleteEmployeeUseCase,
+                requestVacationUseCase = requestVacationUseCase,
+                respondToVacationUseCase = respondToVacationUseCase,
+                refreshEmployeesUseCase = refreshEmployeesUseCase,
+                refreshVacationsUseCase = refreshVacationsUseCase
+            )
         }.value
 
         setContent {
@@ -301,32 +344,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        is ScreenState.Employees -> {
-                            val mappedState = when (stateValue) {
-                                is ScreenState.Employees.Employees -> EmployeesScreenState.Employees(
-                                    employees = stateValue.employees,
-                                    positions = stateValue.positions
-                                )
-                                is ScreenState.Employees.Vacations -> EmployeesScreenState.Vacations(
-                                    vacations = stateValue.vacations
-                                )
-                                ScreenState.Employees.Loading -> EmployeesScreenState.Loading
+                        ScreenState.Employees -> {
+                            LaunchedEffect(Unit) {
+                                employeesViewModel.loadEmployees()
                             }
-                            EmployeeScreen(
-                                state = mappedState,
-                                onTabSelected = { isVacations ->
-                                    viewModel.onEvent(if (isVacations) ScreenEvent.OnVacationsRequested else ScreenEvent.OnEmployeesRequested)
-                                },
-                                onDeleteEmployee = { id ->
-                                    viewModel.onEvent(ScreenEvent.OnDeleteEmployee(id))
-                                },
-                                onAddEmployee = { emp ->
-                                    viewModel.onEvent(ScreenEvent.OnAddEmployee(emp))
-                                },
-                                onVacationResponse = { vac ->
-                                    viewModel.onEvent(ScreenEvent.OnVacationResponseGiven(vac))
-                                }
-                            )
+                            EmployeesScreen(viewModel = employeesViewModel)
                         }
 
                         is ScreenState.Reports ->

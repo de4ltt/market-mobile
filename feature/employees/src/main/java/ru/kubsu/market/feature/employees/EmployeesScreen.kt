@@ -34,12 +34,24 @@ import ru.kubsu.market.core.ui.theme.Colors
 import ru.kubsu.market.feature.employees.component.EmployeeEditDialog
 import ru.kubsu.market.feature.employees.presentation.viewmodel.EmployeesViewModel
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 
 @Composable
 fun EmployeesScreen(
     viewModel: EmployeesViewModel
 ) {
     val state by viewModel.state.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(error) {
+        error?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.clearError()
+        }
+    }
 
     EmployeeScreen(
         state = state,

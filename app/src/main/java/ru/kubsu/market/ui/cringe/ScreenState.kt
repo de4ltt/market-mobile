@@ -20,13 +20,7 @@ sealed interface ScreenState {
     data object MainMenu : ScreenState
     data class Shelves(val storageLocationId: Int) : ScreenState
 
-    sealed interface Employees : ScreenState {
-        data class Employees(val employees: List<Employee>, val positions: List<Position>) :
-            ScreenState.Employees
-
-        data class Vacations(val vacations: List<Vacation>) : ScreenState.Employees
-        data object Loading : ScreenState.Employees
-    }
+    data object Employees : ScreenState
 
     data class ShelfProducts(val shelfId: Int) : ScreenState
     data object Products : ScreenState

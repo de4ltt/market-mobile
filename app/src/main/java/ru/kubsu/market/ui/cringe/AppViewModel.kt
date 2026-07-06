@@ -66,11 +66,6 @@ class AppViewModel(
             stateStack.add(_state.value)
             _state.value = ScreenState.ShelfProducts(event.shelfId)
         }
-        is ScreenEvent.OnVacationResponseGiven -> onVacationResponseGiven(vacation = event.vacation)
-        ScreenEvent.OnEmployeesRequested -> getEmployees()
-        ScreenEvent.OnVacationsRequested -> getVacations()
-        is ScreenEvent.OnAddEmployee -> onAddEmployee(employee = event.employee)
-        is ScreenEvent.OnDeleteEmployee -> onDeleteEmployee(employeeId = event.employeeId)
         ScreenEvent.OnReportsConfirm -> onReportsConfirm()
         ScreenEvent.OnReportsRequested -> onReportsRequested()
         is ScreenEvent.OnReportsRequestedForEmployee -> onEmployeeReportsRequested(event.employeeId)
@@ -200,34 +195,7 @@ class AppViewModel(
     }
 
 
-    private fun onAddEmployee(employee: Employee) = proceedInCoroutine {
-        httpClient.post("$BASE_URL/employees") {
-            contentType(ContentType.Application.Json)
-            setBody(employee)
-        }.body<Employee>()
-        getEmployees()
-    }
 
-    private fun onDeleteEmployee(employeeId: Int) = proceedInCoroutine {
-        httpClient.post("$BASE_URL/employees/$employeeId/dismiss") {
-            parameter("directorId", id)
-        }
-        getEmployees()
-    }
-
-    private fun onVacationResponseGiven(vacation: Vacation) =
-        proceedInCoroutine(withLoading = false) {
-            httpClient.post("$BASE_URL/vacations/${vacation.vacationId}/${if (vacation.approved) "approve" else "decline"}") {
-                contentType(ContentType.Application.Json)
-            }.body<Vacation>()
-            getVacations()
-        }
-
-    private fun getVacations() = proceedInCoroutine(withLoading = false) {
-        _state.value = ScreenState.Employees.Loading
-        val result = httpClient.get("$BASE_URL/vacations").body<List<Vacation>>()
-        _state.value = ScreenState.Employees.Vacations(vacations = result)
-    }
 
 
 
@@ -266,15 +234,9 @@ class AppViewModel(
 
 
 
-    private fun getEmployees() = proceedInCoroutine(withLoading = false) {
-        _state.value = ScreenState.Employees.Loading
-        val items = httpClient.get(
-            urlString = "$BASE_URL/employees"
-        ).body<List<Employee>>()
-        val positions = httpClient.get(
-            urlString = "$BASE_URL/positions"
-        ).body<List<Position>>()
-        _state.value = ScreenState.Employees.Employees(employees = items, positions = positions)
+    private fun getEmployees() {
+        stateStack.add(_state.value)
+        _state.value = ScreenState.Employees
     }
 
 

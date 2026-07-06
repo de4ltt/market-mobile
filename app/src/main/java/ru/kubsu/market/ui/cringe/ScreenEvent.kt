@@ -12,13 +12,8 @@ sealed interface ScreenEvent {
     data object OnFormOrder : ScreenEvent
     data object OnLogOut : ScreenEvent
     data class OnMenuCategorySelected(val menuCategory: MenuCategory) : ScreenEvent
-    data class OnAddEmployee(val employee: Employee) : ScreenEvent
-    data class OnDeleteEmployee(val employeeId: Int) : ScreenEvent
     data class OnShelvesForStorageLocationRequested(val storageLocationId: Int) : ScreenEvent
     data class OnProductsForShelfRequested(val shelfId: Int) : ScreenEvent
-    data class OnVacationResponseGiven(val vacation: Vacation) : ScreenEvent
-    data object OnEmployeesRequested : ScreenEvent
-    data object OnVacationsRequested : ScreenEvent
 
 
     data object OnBack : ScreenEvent

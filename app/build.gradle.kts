@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:model"))
     implementation(project(":core:network"))
+    implementation(project(":core:database"))
     implementation(project(":feature:auth"))
     implementation(project(":feature:employees"))
     implementation(project(":feature:mainmenu"))
@@ -55,6 +56,8 @@ dependencies {
 
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
