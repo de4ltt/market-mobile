@@ -6,7 +6,7 @@ import ru.kubsu.market.core.model.Employee
 import ru.kubsu.market.core.model.PersonnelReport
 import ru.kubsu.market.core.model.ReceivedProduct
 import ru.kubsu.market.core.model.Vacation
-import ru.kubsu.market.ui.screen.MenuCategory
+import ru.kubsu.market.core.model.MenuCategory
 
 sealed interface ScreenEvent {
     data class OnLogin(val login: String, val password: String) : ScreenEvent

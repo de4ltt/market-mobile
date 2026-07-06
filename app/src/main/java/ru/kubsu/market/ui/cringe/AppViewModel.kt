@@ -34,7 +34,7 @@ import kotlinx.serialization.json.Json
 import ru.kubsu.market.core.model.*
 import ru.kubsu.market.core.network.UserPreferencesRepository
 import ru.kubsu.market.core.model.pricing.PriceFormationResult
-import ru.kubsu.market.ui.screen.MenuCategory
+import ru.kubsu.market.core.model.MenuCategory
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId

@@ -51,7 +51,7 @@ import ru.kubsu.market.core.model.ItemRepresentationCard
 import ru.kubsu.market.core.model.ItemRepresentationCardExpanded
 import ru.kubsu.market.core.model.ItemsRepresentationScreen
 import ru.kubsu.market.ui.screen.LoadingScreen
-import ru.kubsu.market.ui.screen.MainMenuScreen
+import ru.kubsu.market.feature.mainmenu.MainMenuScreen
 import ru.kubsu.market.ui.screen.ReceivalScreen
 import ru.kubsu.market.ui.screen.ShiftScreen
 import ru.kubsu.market.core.ui.theme.Colors
@@ -142,7 +142,24 @@ class MainActivity : ComponentActivity() {
 
                         ScreenState.MainMenu -> {
                             viewModel.clearStack()
-                            MainMenuScreen(viewModel = viewModel)
+                            val orderFormed by viewModel.orderFormed.collectAsStateWithLifecycle()
+                            val role by viewModel.role.collectAsStateWithLifecycle()
+                            val isCheckedIn by viewModel.isCheckedIn.collectAsStateWithLifecycle()
+
+                            MainMenuScreen(
+                                role = role,
+                                isCheckedIn = isCheckedIn,
+                                orderFormed = orderFormed,
+                                onMenuCategorySelected = { category ->
+                                    viewModel.onEvent(ScreenEvent.OnMenuCategorySelected(category))
+                                },
+                                onCheckInOut = { isChecked ->
+                                    viewModel.onEvent(if (isChecked) ScreenEvent.OnCheckOut else ScreenEvent.OnCheckIn)
+                                },
+                                onFormOrder = {
+                                    viewModel.onEvent(ScreenEvent.OnFormOrder)
+                                }
+                            )
                         }
 
                         ScreenState.Loading -> LoadingScreen(modifier = Modifier.weight(1f))
