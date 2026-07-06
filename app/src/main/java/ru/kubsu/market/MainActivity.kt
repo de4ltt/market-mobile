@@ -1,0 +1,256 @@
+package ru.kubsu.market
+
+import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import ru.kubsu.market.model.PersonnelReport
+import ru.kubsu.market.model.Product
+import ru.kubsu.market.model.Shelf
+import ru.kubsu.market.model.StorageLocation
+import ru.kubsu.market.ui.component.LogoWithRole
+import ru.kubsu.market.ui.component.MidnightQuestionDialog
+import ru.kubsu.market.ui.component.ProductRepresentationCard
+import ru.kubsu.market.ui.component.ReportRepresentationCard
+import ru.kubsu.market.ui.component.ShelfEditDialog
+import ru.kubsu.market.ui.component.StorageLocationEditDialog
+import ru.kubsu.market.ui.cringe.AppViewModel
+import ru.kubsu.market.ui.cringe.AppViewModelFactory
+import ru.kubsu.market.ui.cringe.ScreenEvent
+import ru.kubsu.market.ui.cringe.ScreenEvent.OnBack
+import ru.kubsu.market.ui.cringe.ScreenEvent.OnProductsForShelfRequested
+import ru.kubsu.market.ui.cringe.ScreenEvent.OnShelvesForStorageLocationRequested
+import ru.kubsu.market.ui.cringe.ScreenEvent.OnUpdateReport
+import ru.kubsu.market.ui.cringe.ScreenState
+import ru.kubsu.market.ui.cringe.UserPreferencesRepository
+import ru.kubsu.market.ui.cringe.userDataStore
+import ru.kubsu.market.ui.screen.AuthScreen
+import ru.kubsu.market.ui.screen.DictionariesScreen
+import ru.kubsu.market.ui.screen.EmployeeScreen
+import ru.kubsu.market.ui.screen.ItemRepresentationCard
+import ru.kubsu.market.ui.screen.ItemRepresentationCardExpanded
+import ru.kubsu.market.ui.screen.ItemsRepresentationScreen
+import ru.kubsu.market.ui.screen.LoadingScreen
+import ru.kubsu.market.ui.screen.MainMenuScreen
+import ru.kubsu.market.ui.screen.ReceivalScreen
+import ru.kubsu.market.ui.screen.ShiftScreen
+import ru.kubsu.market.ui.theme.Colors
+import java.time.ZoneId
+
+class MainActivity : ComponentActivity() {
+
+    lateinit var userPreferencesRepository: UserPreferencesRepository
+    lateinit var viewModel: AppViewModel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+
+        userPreferencesRepository =
+            UserPreferencesRepository(dataStore = this@MainActivity.userDataStore)
+        viewModel =
+            viewModels<AppViewModel> { AppViewModelFactory(userPreferencesRepository = userPreferencesRepository) }.value
+
+        setContent {
+            LaunchedEffect(Unit) {
+                viewModel.startMidnightSchedule(ZoneId.systemDefault())
+                viewModel.isCheckedIn.collectLatest {
+                    Log.d("CHECKED", "$it")
+                }
+            }
+            val show by viewModel.show.collectAsStateWithLifecycle()
+            val isCheckedIn by viewModel.isCheckedIn.collectAsStateWithLifecycle()
+
+            if (show && isCheckedIn) {
+                MidnightQuestionDialog(
+                    question = "Подтвердить отчёт за день?",
+                    secondsToAnswer = 60 * 5,
+                    onYes = {
+                        viewModel.onEvent(ScreenEvent.OnZeroOvertimeCheckOut)
+                        viewModel.dismiss()
+                    },
+                    onNo = { viewModel.dismiss() },
+                    onTimeout = { viewModel.dismiss() }
+                )
+            }
+
+            BackHandler { viewModel.onEvent(OnBack) }
+
+            val pricesByProductId by viewModel.pricesByProductId.collectAsStateWithLifecycle()
+
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            val isAuth = state is ScreenState.Authorization
+            val role by viewModel.role.collectAsStateWithLifecycle()
+
+            val padding by animateDpAsState((if (!isAuth) 15 else 0).dp)
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Colors.BLACK)
+                    .padding(padding)
+            ) {
+                AnimatedVisibility(
+                    visible = !isAuth
+                ) { LogoWithRole(role) }
+
+                Crossfade(
+                    targetState = state
+                ) { stateValue ->
+                    when (stateValue) {
+                        ScreenState.Authorization -> AuthScreen(onEvent = viewModel::onEvent)
+                        is ScreenState.Items -> ItemsRepresentationScreen(
+                            items = stateValue.items,
+                            className = stateValue.className
+                        )
+
+                        is ScreenState.Products -> ItemsRepresentationScreen(
+                            items = stateValue.items,
+                            className = Product.className,
+                            container = { item ->
+                                ProductRepresentationCard(
+                                    product = item as Product,
+                                    priceInfo = stateValue.prices.get(
+                                        item.productId
+                                    )
+                                )
+                            }
+                        )
+
+                        ScreenState.MainMenu -> {
+                            viewModel.clearStack()
+                            MainMenuScreen(viewModel = viewModel)
+                        }
+
+                        ScreenState.Loading -> LoadingScreen(modifier = Modifier.weight(1f))
+                        is ScreenState.Me -> ShiftScreen(
+                            employee = stateValue.me,
+                            hours = stateValue.hours,
+                            underwork = stateValue.underwork,
+                            overwork = stateValue.overwork,
+                            vacation = stateValue.vacation,
+                            onEvent = viewModel::onEvent,
+                            role = stateValue.role
+                        )
+
+                        is ScreenState.ResolveProducts -> ReceivalScreen(
+                            toResolveList = stateValue.toResolveProducts,
+                            onEvent = viewModel::onEvent
+                        )
+
+                        is ScreenState.Storage -> ItemsRepresentationScreen(
+                            items = stateValue.items,
+                            className = StorageLocation.className,
+                            container = {
+                                ItemRepresentationCardExpanded(item = it, onDelete = {}) { item ->
+                                    viewModel.onEvent(
+                                        OnShelvesForStorageLocationRequested(
+                                            (item as StorageLocation).storageLocationId!!
+                                        )
+                                    )
+                                }
+                            },
+                            addDialog = { onDismiss ->
+                                StorageLocationEditDialog(
+                                    onConfirm = {},
+                                    onDismiss = onDismiss
+                                )
+                            }
+                        )
+
+                        is ScreenState.Shelves -> ItemsRepresentationScreen(
+                            items = stateValue.items,
+                            className = Shelf.className,
+                            container = {
+                                ItemRepresentationCardExpanded(item = it, onDelete = {}) { item ->
+                                    viewModel.onEvent(
+                                        OnProductsForShelfRequested(
+                                            (item as Shelf).shelfId!!
+                                        )
+                                    )
+                                }
+                            },
+                            addDialog = { onDismiss ->
+                                ShelfEditDialog(
+                                    storageLocations = stateValue.storageLocations,
+                                    onConfirm = {},
+                                    onDismiss = onDismiss
+                                )
+                            }
+                        )
+
+                        is ScreenState.Employees ->
+                            EmployeeScreen(
+                                state = stateValue,
+                                onEvent = viewModel::onEvent
+                            )
+
+                        is ScreenState.Reports ->
+                            ItemsRepresentationScreen(
+                                items = stateValue.reports,
+                                className = PersonnelReport.className,
+                                buttonText = "Утвердить отчёты",
+                                buttonEnabled = stateValue.reports.isNotEmpty(),
+                                onButtonClick = {
+                                    viewModel.onEvent(
+                                        ScreenEvent.OnReportsConfirm
+                                    )
+                                },
+                                container = { report ->
+                                    ReportRepresentationCard(
+                                        report = report as PersonnelReport,
+                                        onEdit = { cRequest ->
+                                            viewModel.onEvent(
+                                                OnUpdateReport(
+                                                    reports = stateValue.reports,
+                                                    reportId = report.personnelReportId!!,
+                                                    request = cRequest
+                                                )
+                                            )
+                                        }
+                                    )
+                                }
+                            )
+
+                        ScreenState.Dictionaries -> DictionariesScreen(viewModel = viewModel)
+                    }
+                }
+            }
+        }
+
+        // больше кринжа
+        lifecycleScope.launch {
+            viewModel.errorEvents.collectLatest {
+                it?.let {
+                    Toast.makeText(this@MainActivity, it, Toast.LENGTH_LONG).show()
+                    viewModel.clearErrorEvents()
+                }
+            }
+        }
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        viewModel.refresh()
+    }
+}
