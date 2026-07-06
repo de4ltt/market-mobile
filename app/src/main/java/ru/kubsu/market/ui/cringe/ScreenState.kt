@@ -14,12 +14,11 @@ import ru.kubsu.market.core.model.Vacation
 
 sealed interface ScreenState {
     data object Loading : ScreenState
-    data class Storage(val items: List<StorageLocation>) : ScreenState
+    data object Storage : ScreenState
     data object Authorization : ScreenState
     data object Dictionaries : ScreenState
     data object MainMenu : ScreenState
-    data class Shelves(val storageLocations: List<StorageLocation>, val items: List<Shelf>) :
-        ScreenState
+    data class Shelves(val storageLocationId: Int) : ScreenState
 
     sealed interface Employees : ScreenState {
         data class Employees(val employees: List<Employee>, val positions: List<Position>) :
@@ -29,8 +28,8 @@ sealed interface ScreenState {
         data object Loading : ScreenState.Employees
     }
 
-    data class Items(val items: List<IItemRepresentable>, val className: String) : ScreenState
-    data class Products(val items: List<Product>, val prices: Map<Int, ProductPrice>) : ScreenState
+    data class ShelfProducts(val shelfId: Int) : ScreenState
+    data object Products : ScreenState
     data class Me(
         val me: Employee,
         val daysAvailable: Long,

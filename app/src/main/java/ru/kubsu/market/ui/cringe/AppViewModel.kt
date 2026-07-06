@@ -44,7 +44,8 @@ import java.time.temporal.ChronoUnit
 class AppViewModel(
     private val userPrefs: UserPreferencesRepository,
     private val authRepository: ru.kubsu.market.core.network.AuthRepository,
-    val httpClient: HttpClient
+    val httpClient: HttpClient,
+    private val formOrderUseCase: ru.kubsu.market.feature.products.domain.usecase.FormOrderUseCase
 ) : ViewModel() {
 
     private val stateStack: ArrayDeque<ScreenState> = ArrayDeque()
@@ -57,8 +58,14 @@ class AppViewModel(
         ScreenEvent.OnBack -> onBack()
 
 
-        is ScreenEvent.OnShelvesForStorageLocationRequested -> getShelvesForStorageLocation(event.storageLocationId)
-        is ScreenEvent.OnProductsForShelfRequested -> getProductsForShelf(event.shelfId)
+        is ScreenEvent.OnShelvesForStorageLocationRequested -> {
+            stateStack.add(_state.value)
+            _state.value = ScreenState.Shelves(event.storageLocationId)
+        }
+        is ScreenEvent.OnProductsForShelfRequested -> {
+            stateStack.add(_state.value)
+            _state.value = ScreenState.ShelfProducts(event.shelfId)
+        }
         is ScreenEvent.OnVacationResponseGiven -> onVacationResponseGiven(vacation = event.vacation)
         ScreenEvent.OnEmployeesRequested -> getEmployees()
         ScreenEvent.OnVacationsRequested -> getVacations()
@@ -182,7 +189,7 @@ class AppViewModel(
         val reports: List<PersonnelReport> =
             httpClient.get("$BASE_URL/reports/employee/$employeeId").body()
 
-        _state.value = ScreenState.Items(items = reports, className = PersonnelReport.className)
+        _state.value = ScreenState.Reports(reports = reports)
     }
 
     private fun onReportsRequested() = proceedInCoroutine {
@@ -239,9 +246,15 @@ class AppViewModel(
 
     private fun onMenuCategorySelected(menuCategory: MenuCategory) {
         when (menuCategory) {
-            MenuCategory.PRODUCTS -> getProducts()
+            MenuCategory.PRODUCTS -> {
+                stateStack.add(_state.value)
+                _state.value = ScreenState.Products
+            }
             MenuCategory.RECEIVAL -> getReceival()
-            MenuCategory.STORAGE -> getStorage()
+            MenuCategory.STORAGE -> {
+                stateStack.add(_state.value)
+                _state.value = ScreenState.Storage
+            }
             MenuCategory.EMPLOYEES -> getEmployees()
             MenuCategory.MY_SHIFT -> getMyShift()
             MenuCategory.REPORT -> onReportsRequested()
@@ -251,22 +264,7 @@ class AppViewModel(
         }
     }
 
-    private fun getProductsForShelf(shelfId: Int) = proceedInCoroutine {
-        val products = httpClient.get(
-            urlString = "$BASE_URL/shelves/$shelfId/products"
-        ).body<List<Product>>()
-        _state.value = ScreenState.Items(items = products, className = Product.className)
-    }
 
-    private fun getShelvesForStorageLocation(storageLocationId: Int) = proceedInCoroutine {
-        val shelves = httpClient.get(
-            urlString = "$BASE_URL/storage-locations/$storageLocationId/shelves"
-        ).body<List<Shelf>>()
-        val storageLocations = httpClient.get(
-            urlString = "$BASE_URL/storage-locations"
-        ).body<List<StorageLocation>>()
-        _state.value = ScreenState.Shelves(storageLocations = storageLocations, items = shelves)
-    }
 
     private fun getEmployees() = proceedInCoroutine(withLoading = false) {
         _state.value = ScreenState.Employees.Loading
@@ -279,28 +277,14 @@ class AppViewModel(
         _state.value = ScreenState.Employees.Employees(employees = items, positions = positions)
     }
 
-    private fun getStorage() = proceedInCoroutine {
-        val storageLocations = httpClient.get(
-            urlString = "$BASE_URL/storage-locations"
-        ).body<List<StorageLocation>>()
-        _state.value = ScreenState.Storage(items = storageLocations)
-    }
+
 
     private fun getReceival() {
         stateStack.add(_state.value)
         _state.value = ScreenState.ResolveProducts
     }
 
-    private fun getProducts() = proceedInCoroutine {
-        val items = httpClient.get(
-            urlString = "$BASE_URL/products"
-        ).body<List<Product>>()
-        val prices = httpClient.post("$BASE_URL/pricing/products") {
-            contentType(ContentType.Application.Json)
-            setBody(items.map { it.productId })
-        }.body<List<ProductPrice>>().associateBy { it.productId }
-        _state.value = ScreenState.Products(items = items, prices = prices)
-    }
+
 
     private fun getMyShift() = proceedInCoroutine {
         if (id == null)
@@ -484,13 +468,19 @@ private const val BASE_URL_GATE = "http://10.114.84.195:8000"
 class AppViewModelFactory(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val authRepository: ru.kubsu.market.core.network.AuthRepository,
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
+    private val formOrderUseCase: ru.kubsu.market.feature.products.domain.usecase.FormOrderUseCase
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
-            return AppViewModel(userPreferencesRepository, authRepository, httpClient) as T
+            return AppViewModel(
+                userPrefs = userPreferencesRepository,
+                authRepository = authRepository,
+                httpClient = httpClient,
+                formOrderUseCase = formOrderUseCase
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -29,10 +29,13 @@ import ru.kubsu.market.core.model.Shelf
 import ru.kubsu.market.core.model.StorageLocation
 import ru.kubsu.market.ui.component.LogoWithRole
 import ru.kubsu.market.ui.component.MidnightQuestionDialog
-import ru.kubsu.market.ui.component.ProductRepresentationCard
 import ru.kubsu.market.ui.component.ReportRepresentationCard
 import ru.kubsu.market.ui.component.ShelfEditDialog
 import ru.kubsu.market.ui.component.StorageLocationEditDialog
+import ru.kubsu.market.feature.products.presentation.screen.ProductsScreen
+import ru.kubsu.market.feature.products.presentation.screen.StorageScreen
+import ru.kubsu.market.feature.products.presentation.screen.ShelvesScreen
+import ru.kubsu.market.feature.products.presentation.screen.ShelfProductsScreen
 import ru.kubsu.market.ui.cringe.AppViewModel
 import ru.kubsu.market.ui.cringe.AppViewModelFactory
 import ru.kubsu.market.ui.cringe.ScreenEvent
@@ -87,14 +90,34 @@ class MainActivity : ComponentActivity() {
             userPrefs = userPreferencesRepository
         )
 
+        val productsRepository = ru.kubsu.market.feature.products.data.repository.ProductsRepositoryImpl(httpClient = httpClient)
+        val getProductsUseCase = ru.kubsu.market.feature.products.domain.usecase.GetProductsUseCase(repository = productsRepository)
+        val getProductPricesUseCase = ru.kubsu.market.feature.products.domain.usecase.GetProductPricesUseCase(repository = productsRepository)
+        val formOrderUseCase = ru.kubsu.market.feature.products.domain.usecase.FormOrderUseCase(repository = productsRepository)
+        val getStorageLocationsUseCase = ru.kubsu.market.feature.products.domain.usecase.GetStorageLocationsUseCase(repository = productsRepository)
+        val getShelvesUseCase = ru.kubsu.market.feature.products.domain.usecase.GetShelvesUseCase(repository = productsRepository)
+        val getProductsForShelfUseCase = ru.kubsu.market.feature.products.domain.usecase.GetProductsForShelfUseCase(repository = productsRepository)
+
         viewModel =
             viewModels<AppViewModel> {
                 AppViewModelFactory(
                     userPreferencesRepository = userPreferencesRepository,
                     authRepository = authRepository,
-                    httpClient = httpClient
+                    httpClient = httpClient,
+                    formOrderUseCase = formOrderUseCase
                 )
             }.value
+
+        val productsViewModel = viewModels<ru.kubsu.market.feature.products.presentation.viewmodel.ProductsViewModel> {
+            ru.kubsu.market.feature.products.presentation.viewmodel.ProductsViewModelFactory(
+                getProductsUseCase = getProductsUseCase,
+                getProductPricesUseCase = getProductPricesUseCase,
+                formOrderUseCase = formOrderUseCase,
+                getStorageLocationsUseCase = getStorageLocationsUseCase,
+                getShelvesUseCase = getShelvesUseCase,
+                getProductsForShelfUseCase = getProductsForShelfUseCase
+            )
+        }.value
 
         val loginUseCase = ru.kubsu.market.feature.auth.domain.usecase.LoginUseCase(authRepository = authRepository)
         val authViewModel = viewModels<ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModel> {
@@ -152,8 +175,6 @@ class MainActivity : ComponentActivity() {
 
             BackHandler { viewModel.onEvent(OnBack) }
 
-            val pricesByProductId by viewModel.pricesByProductId.collectAsStateWithLifecycle()
-
             val state by viewModel.state.collectAsStateWithLifecycle()
             val isAuth = state is ScreenState.Authorization
             val role by viewModel.role.collectAsStateWithLifecycle()
@@ -178,23 +199,19 @@ class MainActivity : ComponentActivity() {
                             viewModel = authViewModel,
                             onLoginSuccess = {}
                         )
-                        is ScreenState.Items -> ItemsRepresentationScreen(
-                            items = stateValue.items,
-                            className = stateValue.className
-                        )
-
-                        is ScreenState.Products -> ItemsRepresentationScreen(
-                            items = stateValue.items,
-                            className = Product.className,
-                            container = { item ->
-                                ProductRepresentationCard(
-                                    product = item as Product,
-                                    priceInfo = stateValue.prices.get(
-                                        item.productId
-                                    )
-                                )
+                        is ScreenState.ShelfProducts -> {
+                            LaunchedEffect(stateValue.shelfId) {
+                                productsViewModel.loadProductsForShelf(stateValue.shelfId)
                             }
-                        )
+                            ShelfProductsScreen(viewModel = productsViewModel)
+                        }
+
+                        ScreenState.Products -> {
+                            LaunchedEffect(Unit) {
+                                productsViewModel.loadProducts()
+                            }
+                            ProductsScreen(viewModel = productsViewModel)
+                        }
 
                         ScreenState.MainMenu -> {
                             viewModel.clearStack()
@@ -245,46 +262,44 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        is ScreenState.Storage -> ItemsRepresentationScreen(
-                            items = stateValue.items,
-                            className = StorageLocation.className,
-                            container = {
-                                ItemRepresentationCardExpanded(item = it, onDelete = {}) { item ->
-                                    viewModel.onEvent(
-                                        OnShelvesForStorageLocationRequested(
-                                            (item as StorageLocation).storageLocationId!!
-                                        )
+                        ScreenState.Storage -> {
+                            LaunchedEffect(Unit) {
+                                productsViewModel.loadStorageLocations()
+                            }
+                            StorageScreen(
+                                viewModel = productsViewModel,
+                                onShelvesRequested = { storageLocationId ->
+                                    viewModel.onEvent(OnShelvesForStorageLocationRequested(storageLocationId))
+                                },
+                                addDialog = { onDismiss ->
+                                    StorageLocationEditDialog(
+                                        onConfirm = {},
+                                        onDismiss = onDismiss
                                     )
                                 }
-                            },
-                            addDialog = { onDismiss ->
-                                StorageLocationEditDialog(
-                                    onConfirm = {},
-                                    onDismiss = onDismiss
-                                )
-                            }
-                        )
+                            )
+                        }
 
-                        is ScreenState.Shelves -> ItemsRepresentationScreen(
-                            items = stateValue.items,
-                            className = Shelf.className,
-                            container = {
-                                ItemRepresentationCardExpanded(item = it, onDelete = {}) { item ->
-                                    viewModel.onEvent(
-                                        OnProductsForShelfRequested(
-                                            (item as Shelf).shelfId!!
-                                        )
+                        is ScreenState.Shelves -> {
+                            LaunchedEffect(stateValue.storageLocationId) {
+                                productsViewModel.loadShelves(stateValue.storageLocationId)
+                            }
+                            val productsState by productsViewModel.uiState.collectAsStateWithLifecycle()
+                            val storageLocations = (productsState as? ru.kubsu.market.feature.products.presentation.viewmodel.ProductsUiState.Shelves)?.storageLocations ?: emptyList()
+                            ShelvesScreen(
+                                viewModel = productsViewModel,
+                                onProductsRequested = { shelfId ->
+                                    viewModel.onEvent(OnProductsForShelfRequested(shelfId))
+                                },
+                                addDialog = { onDismiss ->
+                                    ShelfEditDialog(
+                                        storageLocations = storageLocations,
+                                        onConfirm = {},
+                                        onDismiss = onDismiss
                                     )
                                 }
-                            },
-                            addDialog = { onDismiss ->
-                                ShelfEditDialog(
-                                    storageLocations = stateValue.storageLocations,
-                                    onConfirm = {},
-                                    onDismiss = onDismiss
-                                )
-                            }
-                        )
+                            )
+                        }
 
                         is ScreenState.Employees -> {
                             val mappedState = when (stateValue) {

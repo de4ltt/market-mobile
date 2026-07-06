@@ -51,6 +51,7 @@ dependencies {
     implementation(project(":feature:shift"))
     implementation(project(":feature:receival"))
     implementation(project(":feature:dictionaries"))
+    implementation(project(":feature:products"))
 
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)

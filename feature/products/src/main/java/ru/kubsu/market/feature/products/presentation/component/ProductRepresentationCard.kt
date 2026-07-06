@@ -1,5 +1,4 @@
-package ru.kubsu.market.ui.component
-
+package ru.kubsu.market.feature.products.presentation.component
 
 import android.util.Log
 import androidx.compose.animation.AnimatedContent

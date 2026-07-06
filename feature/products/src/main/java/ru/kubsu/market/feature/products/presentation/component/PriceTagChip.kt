@@ -1,4 +1,4 @@
-package ru.kubsu.market.ui.component
+package ru.kubsu.market.feature.products.presentation.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
