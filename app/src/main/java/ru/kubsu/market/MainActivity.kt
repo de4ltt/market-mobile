@@ -117,8 +117,7 @@ class MainActivity : ComponentActivity() {
                 AppViewModelFactory(
                     userPreferencesRepository = userPreferencesRepository,
                     authRepository = authRepository,
-                    httpClient = httpClient,
-                    formOrderUseCase = formOrderUseCase
+                    httpClient = httpClient
                 )
             }.value
 
@@ -258,7 +257,7 @@ class MainActivity : ComponentActivity() {
 
                         ScreenState.MainMenu -> {
                             viewModel.clearStack()
-                            val orderFormed by viewModel.orderFormed.collectAsStateWithLifecycle()
+                            val orderFormed by productsViewModel.orderFormed.collectAsStateWithLifecycle()
                             val role by viewModel.role.collectAsStateWithLifecycle()
                             val isCheckedIn by viewModel.isCheckedIn.collectAsStateWithLifecycle()
 
@@ -273,7 +272,7 @@ class MainActivity : ComponentActivity() {
                                     viewModel.onEvent(if (isChecked) ScreenEvent.OnCheckOut else ScreenEvent.OnCheckIn)
                                 },
                                 onFormOrder = {
-                                    viewModel.onEvent(ScreenEvent.OnFormOrder)
+                                    productsViewModel.formOrder(viewModel.id ?: 0)
                                 }
                             )
                         }
@@ -285,7 +284,10 @@ class MainActivity : ComponentActivity() {
                             }
                             ShiftScreen(
                                 viewModel = shiftViewModel,
-                                onLogOut = { viewModel.onEvent(ScreenEvent.OnLogOut) },
+                                onLogOut = {
+                                    productsViewModel.clearOrderFormed()
+                                    viewModel.onEvent(ScreenEvent.OnLogOut)
+                                },
                                 onReportsRequested = { id ->
                                     viewModel.onEvent(ScreenEvent.OnReportsRequestedForEmployee(employeeId = id))
                                 }

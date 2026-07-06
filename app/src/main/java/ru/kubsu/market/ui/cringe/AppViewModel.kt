@@ -44,8 +44,7 @@ import java.time.temporal.ChronoUnit
 class AppViewModel(
     private val userPrefs: UserPreferencesRepository,
     private val authRepository: ru.kubsu.market.core.network.AuthRepository,
-    val httpClient: HttpClient,
-    private val formOrderUseCase: ru.kubsu.market.feature.products.domain.usecase.FormOrderUseCase
+    val httpClient: HttpClient
 ) : ViewModel() {
 
     private val stateStack: ArrayDeque<ScreenState> = ArrayDeque()
@@ -79,7 +78,6 @@ class AppViewModel(
         ScreenEvent.OnCheckOut -> onCheckOut()
         ScreenEvent.OnZeroOvertimeCheckOut -> onZeroOvertimeCheckOut()
         ScreenEvent.OnLogOut -> onLogOut()
-        ScreenEvent.OnFormOrder -> onFormOrder()
     }
     private val _role: MutableStateFlow<Role?> = MutableStateFlow(null)
 
@@ -94,30 +92,9 @@ class AppViewModel(
 
     var vacationDays: Long? = null
         private set
-    private val _orderFormed = MutableStateFlow(false)
-
-    val orderFormed = _orderFormed.asStateFlow()
     private val _isCheckedIn = MutableStateFlow(false)
 
     val isCheckedIn = _isCheckedIn.asStateFlow()
-    private val _pricesByProductId =
-        MutableStateFlow<Map<Int, PriceFormationResult.ProductPrice>>(emptyMap())
-
-    val pricesByProductId = _pricesByProductId.asStateFlow()
-    private val _productPrices: MutableStateFlow<Map<Int, ProductPrice>> =
-        MutableStateFlow(emptyMap())
-
-    val productPrices = _productPrices.asStateFlow()
-
-    private fun onFormOrder() = proceedInCoroutine(withLoading = false) {
-        val result: PriceFormationResult =
-            httpClient.get("$BASE_URL/pricing/$id/make-order").body()
-
-        _pricesByProductId.value = result.productPrices.associateBy { it.productId }
-        _orderFormed.value = true
-    }
-
-
 
     private fun onLogOut() = proceedInCoroutine {
         clearStack()
@@ -128,8 +105,6 @@ class AppViewModel(
         id = null
         _role.value = null
         _isCheckedIn.value = false
-        _pricesByProductId.value = emptyMap()
-        _orderFormed.value = false
         vacation = null
         vacationDays = null
     }
@@ -430,8 +405,7 @@ private const val BASE_URL_GATE = "http://10.114.84.195:8000"
 class AppViewModelFactory(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val authRepository: ru.kubsu.market.core.network.AuthRepository,
-    private val httpClient: HttpClient,
-    private val formOrderUseCase: ru.kubsu.market.feature.products.domain.usecase.FormOrderUseCase
+    private val httpClient: HttpClient
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -440,8 +414,7 @@ class AppViewModelFactory(
             return AppViewModel(
                 userPrefs = userPreferencesRepository,
                 authRepository = authRepository,
-                httpClient = httpClient,
-                formOrderUseCase = formOrderUseCase
+                httpClient = httpClient
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
