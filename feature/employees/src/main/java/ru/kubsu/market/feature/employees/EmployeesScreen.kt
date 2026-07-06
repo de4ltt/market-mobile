@@ -1,4 +1,4 @@
-package ru.kubsu.market.ui.screen
+package ru.kubsu.market.feature.employees
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -23,34 +23,40 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.flow.StateFlow
 import ru.kubsu.market.core.model.Employee
+import ru.kubsu.market.core.model.ItemsRepresentationScreen
+import ru.kubsu.market.core.model.ItemRepresentationCardExpanded
+import ru.kubsu.market.core.model.Position
 import ru.kubsu.market.core.model.Vacation
 import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.component.AppButtonType
-import ru.kubsu.market.ui.component.EmployeeEditDialog
-import ru.kubsu.market.ui.cringe.ScreenEvent
-import ru.kubsu.market.ui.cringe.ScreenState
 import ru.kubsu.market.core.ui.theme.Colors
+import ru.kubsu.market.feature.employees.component.EmployeeEditDialog
+
+sealed interface EmployeesScreenState {
+    data class Employees(val employees: List<Employee>, val positions: List<Position>) : EmployeesScreenState
+    data class Vacations(val vacations: List<Vacation>) : EmployeesScreenState
+    data object Loading : EmployeesScreenState
+}
 
 @Composable
 fun EmployeeScreen(
-    state: ScreenState.Employees,
-    onEvent: (ScreenEvent) -> Unit
+    state: EmployeesScreenState,
+    onTabSelected: (isVacations: Boolean) -> Unit,
+    onDeleteEmployee: (Int) -> Unit,
+    onAddEmployee: (Employee) -> Unit,
+    onVacationResponse: (Vacation) -> Unit
 ) {
-
-    val employeesTextColor by animateColorAsState(if (state is ScreenState.Employees.Employees) Colors.WHITE else Colors.LIGHT_GRAY)
-    val vacationsTextColor by animateColorAsState(if (state is ScreenState.Employees.Vacations) Colors.WHITE else Colors.LIGHT_GRAY)
+    val employeesTextColor by animateColorAsState(if (state is EmployeesScreenState.Employees) Colors.WHITE else Colors.LIGHT_GRAY)
+    val vacationsTextColor by animateColorAsState(if (state is EmployeesScreenState.Vacations) Colors.WHITE else Colors.LIGHT_GRAY)
 
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-
         Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
             Text(
                 modifier = Modifier.clickable(
-                    onClick = { onEvent(ScreenEvent.OnEmployeesRequested) },
+                    onClick = { onTabSelected(false) },
                     interactionSource = null,
                     indication = null
                 ),
@@ -62,7 +68,7 @@ fun EmployeeScreen(
 
             Text(
                 modifier = Modifier.clickable(
-                    onClick = { onEvent(ScreenEvent.OnVacationsRequested) },
+                    onClick = { onTabSelected(true) },
                     interactionSource = null,
                     indication = null
                 ),
@@ -73,60 +79,55 @@ fun EmployeeScreen(
             )
         }
 
-        Crossfade(targetState = state, modifier = Modifier.weight(1f)) {
-            when (val state = it) {
-                is ScreenState.Employees.Employees -> ItemsRepresentationScreen(
-                    items = state.employees,
+        Crossfade(targetState = state, modifier = Modifier.weight(1f)) { stateVal ->
+            when (stateVal) {
+                is EmployeesScreenState.Employees -> ItemsRepresentationScreen(
+                    items = stateVal.employees,
                     container = { item ->
                         ItemRepresentationCardExpanded(item = item, onDelete = {
-                            onEvent(ScreenEvent.OnDeleteEmployee((item as Employee).employeeId!!))
+                            onDeleteEmployee((item as Employee).employeeId!!)
                         })
                     },
                     addDialog = { onDismiss ->
                         EmployeeEditDialog(
-                            positions = state.positions,
+                            positions = stateVal.positions,
                             onConfirm = { employee ->
-                                onEvent(ScreenEvent.OnAddEmployee(employee))
+                                onAddEmployee(employee)
                             },
                             onDismiss = onDismiss
                         )
                     }
                 )
 
-                ScreenState.Employees.Loading -> Box(
+                EmployeesScreenState.Loading -> Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) { CircularProgressIndicator(color = Colors.DARK_BLUE) }
 
-                is ScreenState.Employees.Vacations -> ItemsRepresentationScreen(
-                    items = state.vacations,
+                is EmployeesScreenState.Vacations -> ItemsRepresentationScreen(
+                    items = stateVal.vacations,
                     container = { vacation ->
                         VacationRepresentationCard(
                             vacation = vacation as Vacation,
                             onAccept = {
-                                onEvent(
-                                    ScreenEvent.OnVacationResponseGiven(
-                                        vacation.copy(
-                                            reviewed = true,
-                                            approved = true
-                                        )
+                                onVacationResponse(
+                                    vacation.copy(
+                                        reviewed = true,
+                                        approved = true
                                     )
                                 )
                             },
                             onRefuse = {
-                                onEvent(
-                                    ScreenEvent.OnVacationResponseGiven(
-                                        vacation.copy(
-                                            reviewed = true,
-                                            approved = false
-                                        )
+                                onVacationResponse(
+                                    vacation.copy(
+                                        reviewed = true,
+                                        approved = false
                                     )
                                 )
                             }
                         )
                     }
                 )
-
             }
         }
     }

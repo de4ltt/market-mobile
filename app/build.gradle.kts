@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:network"))
     implementation(project(":feature:auth"))
+    implementation(project(":feature:employees"))
 
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)

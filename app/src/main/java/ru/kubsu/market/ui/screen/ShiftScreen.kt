@@ -44,7 +44,7 @@ import ru.kubsu.market.core.model.Role
 import ru.kubsu.market.core.model.Vacation
 import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.component.AppButtonType
-import ru.kubsu.market.ui.component.VacationEditDialog
+import ru.kubsu.market.feature.employees.component.VacationEditDialog
 import ru.kubsu.market.ui.cringe.ScreenEvent
 import ru.kubsu.market.core.ui.theme.Colors
 

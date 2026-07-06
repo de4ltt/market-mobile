@@ -45,10 +45,11 @@ import ru.kubsu.market.core.network.UserPreferencesRepository
 import ru.kubsu.market.core.network.userDataStore
 import ru.kubsu.market.feature.auth.AuthScreen
 import ru.kubsu.market.ui.screen.DictionariesScreen
-import ru.kubsu.market.ui.screen.EmployeeScreen
-import ru.kubsu.market.ui.screen.ItemRepresentationCard
-import ru.kubsu.market.ui.screen.ItemRepresentationCardExpanded
-import ru.kubsu.market.ui.screen.ItemsRepresentationScreen
+import ru.kubsu.market.feature.employees.EmployeeScreen
+import ru.kubsu.market.feature.employees.EmployeesScreenState
+import ru.kubsu.market.core.model.ItemRepresentationCard
+import ru.kubsu.market.core.model.ItemRepresentationCardExpanded
+import ru.kubsu.market.core.model.ItemsRepresentationScreen
 import ru.kubsu.market.ui.screen.LoadingScreen
 import ru.kubsu.market.ui.screen.MainMenuScreen
 import ru.kubsu.market.ui.screen.ReceivalScreen
@@ -201,11 +202,33 @@ class MainActivity : ComponentActivity() {
                             }
                         )
 
-                        is ScreenState.Employees ->
+                        is ScreenState.Employees -> {
+                            val mappedState = when (stateValue) {
+                                is ScreenState.Employees.Employees -> EmployeesScreenState.Employees(
+                                    employees = stateValue.employees,
+                                    positions = stateValue.positions
+                                )
+                                is ScreenState.Employees.Vacations -> EmployeesScreenState.Vacations(
+                                    vacations = stateValue.vacations
+                                )
+                                ScreenState.Employees.Loading -> EmployeesScreenState.Loading
+                            }
                             EmployeeScreen(
-                                state = stateValue,
-                                onEvent = viewModel::onEvent
+                                state = mappedState,
+                                onTabSelected = { isVacations ->
+                                    viewModel.onEvent(if (isVacations) ScreenEvent.OnVacationsRequested else ScreenEvent.OnEmployeesRequested)
+                                },
+                                onDeleteEmployee = { id ->
+                                    viewModel.onEvent(ScreenEvent.OnDeleteEmployee(id))
+                                },
+                                onAddEmployee = { emp ->
+                                    viewModel.onEvent(ScreenEvent.OnAddEmployee(emp))
+                                },
+                                onVacationResponse = { vac ->
+                                    viewModel.onEvent(ScreenEvent.OnVacationResponseGiven(vac))
+                                }
                             )
+                        }
 
                         is ScreenState.Reports ->
                             ItemsRepresentationScreen(

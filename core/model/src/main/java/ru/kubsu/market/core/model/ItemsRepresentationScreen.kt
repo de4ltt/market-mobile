@@ -1,4 +1,4 @@
-package ru.kubsu.market.ui.screen
+package ru.kubsu.market.core.model
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,8 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.kubsu.market.R
-import ru.kubsu.market.core.model.IItemRepresentable
+import ru.kubsu.market.core.ui.R as CoreUiR
 import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.theme.Colors
 
@@ -139,7 +137,7 @@ fun ItemsRepresentationScreen(
                                             .clickable(
                                                 onClick = { deleteAction(item) }
                                             ),
-                                        painter = painterResource(R.drawable.bin),
+                                        painter = painterResource(CoreUiR.drawable.bin),
                                         tint = Colors.ORANGE,
                                         contentDescription = "delete_icon"
                                     )
@@ -176,7 +174,7 @@ fun ItemsRepresentationScreen(
                         .clickable(
                             onClick = { isDialogOpened = true }
                         ),
-                    painter = painterResource(R.drawable.plus),
+                    painter = painterResource(CoreUiR.drawable.plus),
                     tint = Colors.WHITE,
                     contentDescription = "delete_icon"
                 )
@@ -258,7 +256,7 @@ fun ItemsRepresentationScreen(
                                             .clickable(
                                                 onClick = { deleteAction(item) }
                                             ),
-                                        painter = painterResource(R.drawable.bin),
+                                        painter = painterResource(CoreUiR.drawable.bin),
                                         tint = Colors.ORANGE,
                                         contentDescription = "delete_icon"
                                     )
@@ -295,7 +293,7 @@ fun ItemsRepresentationScreen(
                         .clickable(
                             onClick = { isDialogOpened = true }
                         ),
-                    painter = painterResource(R.drawable.plus),
+                    painter = painterResource(CoreUiR.drawable.plus),
                     tint = Colors.WHITE,
                     contentDescription = "delete_icon"
                 )
@@ -334,7 +332,7 @@ fun ItemRepresentationCardExpanded(
                     indication = null,
                     interactionSource = null
                 ),
-            painter = painterResource(R.drawable.bin),
+            painter = painterResource(CoreUiR.drawable.bin),
             tint = Colors.RED,
             contentDescription = "delete_icon"
         )
