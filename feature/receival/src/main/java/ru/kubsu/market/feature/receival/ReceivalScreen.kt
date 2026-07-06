@@ -84,7 +84,7 @@ fun ReceivalScreen(
                     .padding(vertical = 25.dp, horizontal = 35.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                curProduct!!.product.FullContent()
+                ru.kubsu.market.core.ui.component.FieldsRepresentation(map = curProduct!!.product.displayFields)
 
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     AppButton(

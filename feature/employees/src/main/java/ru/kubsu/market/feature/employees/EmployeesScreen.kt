@@ -24,8 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.kubsu.market.core.model.Employee
-import ru.kubsu.market.core.model.ItemsRepresentationScreen
-import ru.kubsu.market.core.model.ItemRepresentationCardExpanded
+import ru.kubsu.market.core.ui.component.ItemsRepresentationScreen
+import ru.kubsu.market.core.ui.component.ItemRepresentationCardExpanded
 import ru.kubsu.market.core.model.Position
 import ru.kubsu.market.core.model.Vacation
 import ru.kubsu.market.core.ui.component.AppButton
@@ -147,7 +147,7 @@ private fun VacationRepresentationCard(
         .padding(20.dp),
     verticalArrangement = Arrangement.spacedBy(15.dp)
 ) {
-    vacation.FullContent()
+    ru.kubsu.market.core.ui.component.FieldsRepresentation(map = vacation.displayFields)
 
     if (!vacation.reviewed) {
         Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {

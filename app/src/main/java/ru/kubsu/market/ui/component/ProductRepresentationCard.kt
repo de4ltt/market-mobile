@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ru.kubsu.market.core.model.Product
 import ru.kubsu.market.core.model.ProductPrice
 import ru.kubsu.market.core.model.pricing.PriceFormationResult
@@ -48,11 +49,21 @@ fun ProductRepresentationCard(
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             AnimatedContent(targetState = isExpanded, label = "expand_product") { expanded ->
                 if (expanded) {
-                    // существующий FullContent товара (barcode + поля)
-                    product.FullContent()
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        product.barcode?.let {
+                            ru.kubsu.market.core.ui.component.BarCode(code = it)
+                        }
+                        ru.kubsu.market.core.ui.component.FieldsRepresentation(map = product.displayFields)
+                    }
                 } else {
-                    // существующий ShortContent товара
-                    product.ShortContent()
+                    androidx.compose.material3.Text(
+                        text = product.displayName,
+                        fontSize = 20.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
+                        color = Colors.WHITE
+                    )
                 }
             }
 

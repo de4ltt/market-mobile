@@ -47,9 +47,9 @@ import ru.kubsu.market.feature.auth.AuthScreen
 import ru.kubsu.market.feature.dictionaries.DictionariesScreen
 import ru.kubsu.market.feature.employees.EmployeeScreen
 import ru.kubsu.market.feature.employees.EmployeesScreenState
-import ru.kubsu.market.core.model.ItemRepresentationCard
-import ru.kubsu.market.core.model.ItemRepresentationCardExpanded
-import ru.kubsu.market.core.model.ItemsRepresentationScreen
+import ru.kubsu.market.core.ui.component.ItemRepresentationCard
+import ru.kubsu.market.core.ui.component.ItemRepresentationCardExpanded
+import ru.kubsu.market.core.ui.component.ItemsRepresentationScreen
 import ru.kubsu.market.ui.screen.LoadingScreen
 import ru.kubsu.market.feature.mainmenu.MainMenuScreen
 import ru.kubsu.market.feature.receival.ReceivalScreen

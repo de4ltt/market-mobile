@@ -1,4 +1,10 @@
-package ru.kubsu.market.core.model
+package ru.kubsu.market.core.ui.component
+
+import ru.kubsu.market.core.model.IItemRepresentable
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.material3.CircularProgressIndicator
+import coil3.compose.SubcomposeAsyncImage
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
@@ -321,7 +327,12 @@ fun ItemRepresentationCardExpanded(
             interactionSource = null
         )
 ) {
-    item.FullContent()
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        item.barcode?.let { BarCode(code = it) }
+        FieldsRepresentation(map = item.displayFields)
+    }
 
     onDelete?.let {
         Icon(
@@ -364,6 +375,70 @@ fun ItemRepresentationCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight(Alignment.Top)
-        ) { if (it) item.FullContent() else item.ShortContent() }
+        ) { expanded ->
+            if (expanded) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    item.barcode?.let { BarCode(code = it) }
+                    FieldsRepresentation(map = item.displayFields)
+                }
+            } else {
+                Text(
+                    text = item.displayName,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Colors.WHITE
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BarCode(
+    code: String,
+    modifier: Modifier = Modifier
+) {
+    val url = remember(code) {
+        "https://www.scandit.com/api/generate-barcode/?type=code128&value=$code"
+    }
+
+    Box(
+        modifier = modifier
+            .background(Colors.WHITE, RoundedCornerShape(12.dp))
+            .padding(5.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        SubcomposeAsyncImage(
+            model = url,
+            contentDescription = "Barcode",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+            loading = {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        strokeWidth = 3.dp,
+                        color = Colors.DARK_BLUE
+                    )
+                }
+            },
+            error = {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Не удалось загрузить штрихкод",
+                        color = Colors.DARK_GRAY
+                    )
+                }
+            }
+        )
     }
 }

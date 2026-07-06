@@ -60,7 +60,7 @@ fun ReportRepresentationCard(
             .wrapContentHeight()
             .padding(20.dp)
     ) {
-        report.FullContent()
+        ru.kubsu.market.core.ui.component.FieldsRepresentation(map = report.displayFields)
 
         Icon(
             modifier = Modifier

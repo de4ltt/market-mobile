@@ -1,7 +1,5 @@
 package ru.kubsu.market.core.model
 
-import android.util.Log
-
 enum class Role(val title: String) {
     DIRECTOR(title = "Директор"),
     FIRED(title = "Уволен"),
@@ -12,7 +10,6 @@ enum class Role(val title: String) {
     companion object {
         fun findByRole(role: String) = Role.entries.firstOrNull {
             val roleClear = role.split("_")[1]
-            Log.d("HAEEOR", "${it.name} $roleClear")
             it.name.contains(other = roleClear, ignoreCase = true)
         }
     }

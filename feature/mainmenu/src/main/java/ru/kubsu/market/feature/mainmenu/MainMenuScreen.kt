@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -152,6 +153,50 @@ fun MainMenuScreen(
     }
 }
 
+private val MenuCategory.icon: Int
+    get() = when (this) {
+        MenuCategory.PRODUCTS -> ru.kubsu.market.core.ui.R.drawable.products_box
+        MenuCategory.STORAGE -> ru.kubsu.market.core.ui.R.drawable.storage
+        MenuCategory.RECEIVAL -> ru.kubsu.market.core.ui.R.drawable.receival
+        MenuCategory.REPORT -> ru.kubsu.market.core.ui.R.drawable.accounting
+        MenuCategory.EMPLOYEES -> ru.kubsu.market.core.ui.R.drawable.employees
+        MenuCategory.MY_SHIFT -> ru.kubsu.market.core.ui.R.drawable.my_shift
+        MenuCategory.DICTIONARIES -> ru.kubsu.market.core.ui.R.drawable.prices
+    }
+
+private val MenuCategory.iconAlignment: Alignment
+    get() = when (this) {
+        MenuCategory.PRODUCTS -> Alignment.CenterEnd
+        MenuCategory.STORAGE -> Alignment.BottomEnd
+        MenuCategory.RECEIVAL -> Alignment.CenterStart
+        MenuCategory.REPORT -> Alignment.BottomStart
+        MenuCategory.EMPLOYEES -> Alignment.CenterEnd
+        MenuCategory.MY_SHIFT -> Alignment.CenterStart
+        MenuCategory.DICTIONARIES -> Alignment.CenterEnd
+    }
+
+private val MenuCategory.textAlignment: Alignment
+    get() = when (this) {
+        MenuCategory.PRODUCTS -> Alignment.BottomStart
+        MenuCategory.STORAGE -> Alignment.TopStart
+        MenuCategory.RECEIVAL -> Alignment.TopEnd
+        MenuCategory.REPORT -> Alignment.BottomEnd
+        MenuCategory.EMPLOYEES -> Alignment.TopStart
+        MenuCategory.MY_SHIFT -> Alignment.BottomEnd
+        MenuCategory.DICTIONARIES -> Alignment.BottomStart
+    }
+
+private val MenuCategory.paddingValues: PaddingValues
+    get() = when (this) {
+        MenuCategory.PRODUCTS -> PaddingValues(end = 20.dp)
+        MenuCategory.RECEIVAL -> PaddingValues(start = 10.dp)
+        MenuCategory.REPORT -> PaddingValues(start = 10.dp)
+        MenuCategory.EMPLOYEES -> PaddingValues(end = 10.dp)
+        MenuCategory.MY_SHIFT -> PaddingValues(start = 10.dp)
+        MenuCategory.DICTIONARIES -> PaddingValues(end = 10.dp)
+        else -> PaddingValues(0.dp)
+    }
+
 @Composable
 private fun BoxMenuCategoryCard(
     modifier: Modifier = Modifier,
@@ -176,29 +221,27 @@ private fun BoxMenuCategoryCard(
                 interactionSource = remember { MutableInteractionSource() }
             )
     ) {
-        menuCategory.apply {
-            Image(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxHeight(0.9f)
-                    .align(iconAlignment),
-                painter = painterResource(icon),
-                contentDescription = title,
-                colorFilter = if (!enabled)
-                    ColorFilter.colorMatrix(grayscaleMatrix)
-                else
-                    null
-            )
+        Image(
+            modifier = Modifier
+                .padding(menuCategory.paddingValues)
+                .fillMaxHeight(0.9f)
+                .align(menuCategory.iconAlignment),
+            painter = painterResource(menuCategory.icon),
+            contentDescription = menuCategory.title,
+            colorFilter = if (!enabled)
+                ColorFilter.colorMatrix(grayscaleMatrix)
+            else
+                null
+        )
 
-            Text(
-                modifier = Modifier
-                    .padding(15.dp)
-                    .align(textAlignment),
-                text = title,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (enabled) Colors.WHITE else Colors.LIGHT_GRAY
-            )
-        }
+        Text(
+            modifier = Modifier
+                .padding(15.dp)
+                .align(menuCategory.textAlignment),
+            text = menuCategory.title,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (enabled) Colors.WHITE else Colors.LIGHT_GRAY
+        )
     }
 }
