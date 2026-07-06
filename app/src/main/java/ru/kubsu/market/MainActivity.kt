@@ -87,6 +87,11 @@ class MainActivity : ComponentActivity() {
                 )
             }.value
 
+        val loginUseCase = ru.kubsu.market.feature.auth.domain.usecase.LoginUseCase(authRepository = authRepository)
+        val authViewModel = viewModels<ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModel> {
+            ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModelFactory(loginUseCase)
+        }.value
+
         setContent {
             LaunchedEffect(Unit) {
                 viewModel.startMidnightSchedule(ZoneId.systemDefault())
@@ -134,9 +139,10 @@ class MainActivity : ComponentActivity() {
                     targetState = state
                 ) { stateValue ->
                     when (stateValue) {
-                        ScreenState.Authorization -> AuthScreen(onLogin = { login, password ->
-                            viewModel.onEvent(ScreenEvent.OnLogin(login, password))
-                        })
+                        ScreenState.Authorization -> AuthScreen(
+                            viewModel = authViewModel,
+                            onLoginSuccess = {}
+                        )
                         is ScreenState.Items -> ItemsRepresentationScreen(
                             items = stateValue.items,
                             className = stateValue.className

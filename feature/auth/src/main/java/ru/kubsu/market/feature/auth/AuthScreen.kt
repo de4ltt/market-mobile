@@ -33,6 +33,22 @@ import androidx.compose.ui.unit.sp
 import ru.kubsu.market.core.ui.R
 import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.theme.Colors
+import androidx.compose.runtime.collectAsState
+import ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModel
+
+@Composable
+fun AuthScreen(
+    viewModel: AuthViewModel,
+    onLoginSuccess: () -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    AuthScreen(
+        onLogin = { login, password ->
+            viewModel.login(login, password, onLoginSuccess)
+        }
+    )
+}
 
 @Composable
 fun AuthScreen(

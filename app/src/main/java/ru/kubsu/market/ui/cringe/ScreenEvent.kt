@@ -9,7 +9,6 @@ import ru.kubsu.market.core.model.Vacation
 import ru.kubsu.market.core.model.MenuCategory
 
 sealed interface ScreenEvent {
-    data class OnLogin(val login: String, val password: String) : ScreenEvent
     data object OnFormOrder : ScreenEvent
     data object OnLogOut : ScreenEvent
     data class OnMenuCategorySelected(val menuCategory: MenuCategory) : ScreenEvent

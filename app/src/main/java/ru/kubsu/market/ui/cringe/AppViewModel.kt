@@ -53,7 +53,6 @@ class AppViewModel(
     val state = _state.asStateFlow()
 
     fun onEvent(event: ScreenEvent) = when (event) {
-        is ScreenEvent.OnLogin -> onLogin(login = event.login, password = event.password)
         is ScreenEvent.OnMenuCategorySelected -> onMenuCategorySelected(menuCategory = event.menuCategory)
         ScreenEvent.OnBack -> onBack()
         is ScreenEvent.OnProductsResolved -> onResolveProducts(
@@ -266,16 +265,6 @@ class AppViewModel(
         }*/
         _state.value = ScreenState.MainMenu
     }
-
-    private fun onLogin(login: String, password: String) =
-        proceedInCoroutine(withLoading = false) {
-            val response = authRepository.login(login, password)
-            accessToken = response.access_token
-            refreshToken = response.refresh_token
-
-            getMe()
-            _state.value = ScreenState.MainMenu
-        }
 
     private suspend fun getWorkDaysForEmployee(employeeId: Int): List<WorkDay> {
         val workDays = httpClient.get("$BASE_URL/time-tracking/$employeeId/work-days") {
