@@ -7,8 +7,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
-import ru.kubsu.market.core.network.AuthRepository
-import ru.kubsu.market.core.network.AuthRepositoryImpl
 import ru.kubsu.market.core.network.HttpClientProvider
 import ru.kubsu.market.core.network.UserPreferencesRepository
 import ru.kubsu.market.core.network.userDataStore
@@ -32,14 +30,5 @@ object NetworkModule {
         userPreferencesRepository: UserPreferencesRepository
     ): HttpClient {
         return HttpClientProvider(userPreferencesRepository).create()
-    }
-
-    @Provides
-    @Singleton
-    fun provideAuthRepository(
-        httpClient: HttpClient,
-        userPreferencesRepository: UserPreferencesRepository
-    ): AuthRepository {
-        return AuthRepositoryImpl(httpClient, userPreferencesRepository)
     }
 }
