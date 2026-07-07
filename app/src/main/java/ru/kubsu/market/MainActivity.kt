@@ -37,28 +37,28 @@ import ru.kubsu.market.core.model.Shelf
 import ru.kubsu.market.core.model.StorageLocation
 import ru.kubsu.market.ui.component.LogoWithRole
 import ru.kubsu.market.ui.component.MidnightQuestionDialog
-import ru.kubsu.market.ui.component.ShelfEditDialog
-import ru.kubsu.market.ui.component.StorageLocationEditDialog
+import ru.kubsu.market.feature.products.presentation.component.ShelfEditDialog
+import ru.kubsu.market.feature.products.presentation.component.StorageLocationEditDialog
 import ru.kubsu.market.feature.products.presentation.screen.ProductsScreen
 import ru.kubsu.market.feature.products.presentation.screen.StorageScreen
 import ru.kubsu.market.feature.products.presentation.screen.ShelvesScreen
 import ru.kubsu.market.feature.products.presentation.screen.ShelfProductsScreen
-import ru.kubsu.market.feature.auth.AuthScreen
-import ru.kubsu.market.feature.dictionaries.DictionariesScreen
-import ru.kubsu.market.feature.employees.EmployeeScreen
-import ru.kubsu.market.feature.employees.EmployeesScreenState
+import ru.kubsu.market.feature.auth.presentation.screen.AuthRoute
+import ru.kubsu.market.feature.dictionaries.presentation.screen.DictionariesRoute
+import ru.kubsu.market.feature.employees.presentation.model.EmployeesScreenState
 import ru.kubsu.market.core.ui.component.ItemRepresentationCard
 import ru.kubsu.market.core.ui.component.ItemRepresentationCardExpanded
 import ru.kubsu.market.core.ui.component.ItemsRepresentationScreen
 import ru.kubsu.market.ui.screen.LoadingScreen
-import ru.kubsu.market.feature.mainmenu.MainMenuScreen
-import ru.kubsu.market.feature.receival.ReceivalScreen
+import ru.kubsu.market.feature.mainmenu.presentation.screen.MainMenuScreen
+import ru.kubsu.market.feature.receival.presentation.screen.ReceivalRoute
 import ru.kubsu.market.feature.receival.presentation.viewmodel.ReceivalViewModel
 import ru.kubsu.market.feature.dictionaries.presentation.viewmodel.DictionariesViewModel
-import ru.kubsu.market.feature.shift.ShiftScreen
-import ru.kubsu.market.feature.employees.EmployeesScreen
+import ru.kubsu.market.feature.shift.presentation.screen.ShiftRoute
+import ru.kubsu.market.feature.employees.presentation.screen.EmployeesRoute
 import ru.kubsu.market.feature.employees.presentation.viewmodel.EmployeesViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.hilt.navigation.compose.hiltViewModel
 import ru.kubsu.market.core.ui.theme.Colors
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -66,23 +66,17 @@ import java.time.temporal.ChronoUnit
 import java.time.Duration
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import ru.kubsu.market.core.network.SessionState
+import ru.kubsu.market.core.data.SessionState
 import ru.kubsu.market.core.model.MenuCategory
 import ru.kubsu.market.ui.navigation.Destination
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val productsViewModel: ru.kubsu.market.feature.products.presentation.viewmodel.ProductsViewModel by viewModels()
-    private val authViewModel: ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModel by viewModels()
-    private val shiftViewModel: ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftViewModel by viewModels()
-    private val receivalViewModel: ReceivalViewModel by viewModels()
-    private val dictionariesViewModel: DictionariesViewModel by viewModels()
-    private val employeesViewModel: EmployeesViewModel by viewModels()
-    private val reportsViewModel: ru.kubsu.market.feature.employees.presentation.reports.ReportsViewModel by viewModels()
+    private val mainViewModel: ru.kubsu.market.presentation.viewmodel.MainActivityViewModel by viewModels()
 
     @Inject
-    lateinit var sessionManager: ru.kubsu.market.core.network.SessionManager
+    lateinit var sessionManager: ru.kubsu.market.core.data.SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,20 +113,7 @@ class MainActivity : ComponentActivity() {
 
             // Midnight question scheduling
             val isCheckedIn by sessionManager.isCheckedIn.collectAsStateWithLifecycle()
-            var showMidnightQuestion by remember { mutableStateOf(false) }
-
-            LaunchedEffect(isCheckedIn) {
-                if (isCheckedIn) {
-                    while (true) {
-                        val delayMs = millisUntilNextMidnight(ZoneId.systemDefault())
-                        kotlinx.coroutines.delay(delayMs)
-                        showMidnightQuestion = true
-                        kotlinx.coroutines.delay(1000)
-                    }
-                } else {
-                    showMidnightQuestion = false
-                }
-            }
+            val showMidnightQuestion by mainViewModel.showMidnightQuestion.collectAsStateWithLifecycle()
 
             if (showMidnightQuestion && isCheckedIn) {
                 MidnightQuestionDialog(
@@ -141,18 +122,15 @@ class MainActivity : ComponentActivity() {
                     onYes = {
                         val loggedIn = sessionState as? SessionState.LoggedIn
                         loggedIn?.let {
-                            lifecycleScope.launch {
-                                try {
-                                    sessionManager.zeroOvertimeCheckOut(it.userId)
-                                    showMidnightQuestion = false
-                                } catch (e: Exception) {
-                                    Toast.makeText(this@MainActivity, e.message ?: "Ошибка операции", Toast.LENGTH_LONG).show()
-                                }
+                            try {
+                                mainViewModel.onZeroOvertimeChecked(it.userId)
+                            } catch (e: Exception) {
+                                Toast.makeText(this@MainActivity, e.message ?: "Ошибка операции", Toast.LENGTH_LONG).show()
                             }
                         }
                     },
-                    onNo = { showMidnightQuestion = false },
-                    onTimeout = { showMidnightQuestion = false }
+                    onNo = { mainViewModel.dismissMidnightQuestion() },
+                    onTimeout = { mainViewModel.dismissMidnightQuestion() }
                 )
             }
 
@@ -178,17 +156,33 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable<Destination.Authorization> {
-                        AuthScreen(
+                        val authViewModel = hiltViewModel<ru.kubsu.market.feature.auth.presentation.viewmodel.AuthViewModel>()
+                        AuthRoute(
                             viewModel = authViewModel,
                             onLoginSuccess = {}
                         )
                     }
 
                     composable<Destination.MainMenu> {
-                        val orderFormed by productsViewModel.orderFormed.collectAsStateWithLifecycle()
                         val loggedIn = sessionState as? SessionState.LoggedIn
                         val role = loggedIn?.role
                         val userId = loggedIn?.userId ?: 0
+                        var orderFormed by remember { mutableStateOf(false) }
+                        val productsViewModel = hiltViewModel<ru.kubsu.market.feature.products.presentation.viewmodel.ProductsViewModel>()
+
+                        LaunchedEffect(Unit) {
+                            productsViewModel.uiEvent.collectLatest { event ->
+                                when (event) {
+                                    ru.kubsu.market.feature.products.presentation.model.ProductsUiEvent.OrderFormed -> {
+                                        orderFormed = true
+                                        Toast.makeText(this@MainActivity, "Приказ успешно выполнен", Toast.LENGTH_SHORT).show()
+                                    }
+                                    is ru.kubsu.market.feature.products.presentation.model.ProductsUiEvent.ShowToast -> {
+                                        Toast.makeText(this@MainActivity, event.message, Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            }
+                        }
 
                         MainMenuScreen(
                             role = role,
@@ -224,20 +218,23 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable<Destination.Products> {
+                    composable<Destination.Products> { backStackEntry ->
+                        val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(Destination.MainMenu) }
+                        val productsViewModel = hiltViewModel<ru.kubsu.market.feature.products.presentation.viewmodel.ProductsViewModel>(parentEntry)
                         LaunchedEffect(Unit) {
                             productsViewModel.loadProducts()
                         }
-                        ProductsScreen(viewModel = productsViewModel)
+                        ru.kubsu.market.feature.products.presentation.screen.ProductsRoute(viewModel = productsViewModel)
                     }
 
                     composable<Destination.ResolveProducts> {
                         val loggedIn = sessionState as? SessionState.LoggedIn
                         val userId = loggedIn?.userId ?: 0
+                        val receivalViewModel = hiltViewModel<ReceivalViewModel>()
                         LaunchedEffect(Unit) {
                             receivalViewModel.loadProducts()
                         }
-                        ReceivalScreen(
+                        ReceivalRoute(
                             viewModel = receivalViewModel,
                             employeeId = userId,
                             onFinished = {
@@ -247,11 +244,12 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable<Destination.Storage> {
+                        val storageViewModel = hiltViewModel<ru.kubsu.market.feature.products.presentation.viewmodel.StorageViewModel>()
                         LaunchedEffect(Unit) {
-                            productsViewModel.loadStorageLocations()
+                            storageViewModel.loadStorageLocations()
                         }
-                        StorageScreen(
-                            viewModel = productsViewModel,
+                        ru.kubsu.market.feature.products.presentation.screen.StorageRoute(
+                            viewModel = storageViewModel,
                             onShelvesRequested = { storageLocationId ->
                                 navController.navigate(Destination.Shelves(storageLocationId))
                             },
@@ -266,13 +264,15 @@ class MainActivity : ComponentActivity() {
 
                     composable<Destination.Shelves> { backStackEntry ->
                         val shelvesRoute = backStackEntry.toRoute<Destination.Shelves>()
+                        val shelvesViewModel = hiltViewModel<ru.kubsu.market.feature.products.presentation.viewmodel.ShelvesViewModel>()
                         LaunchedEffect(shelvesRoute.storageLocationId) {
-                            productsViewModel.loadShelves(shelvesRoute.storageLocationId)
+                            shelvesViewModel.loadShelves(shelvesRoute.storageLocationId)
                         }
-                        val productsState by productsViewModel.uiState.collectAsStateWithLifecycle()
-                        val storageLocations = (productsState as? ru.kubsu.market.feature.products.presentation.viewmodel.ProductsUiState.Shelves)?.storageLocations ?: emptyList()
-                        ShelvesScreen(
-                            viewModel = productsViewModel,
+                        val shelvesState by shelvesViewModel.uiState.collectAsStateWithLifecycle()
+                        val storageLocations = (shelvesState as? ru.kubsu.market.feature.products.presentation.model.ShelvesUiState.Success)?.storageLocations ?: emptyList()
+                        ru.kubsu.market.feature.products.presentation.screen.ShelvesRoute(
+                            viewModel = shelvesViewModel,
+                            storageLocationId = shelvesRoute.storageLocationId,
                             onProductsRequested = { shelfId ->
                                 navController.navigate(Destination.ShelfProducts(shelfId))
                             },
@@ -288,28 +288,33 @@ class MainActivity : ComponentActivity() {
 
                     composable<Destination.ShelfProducts> { backStackEntry ->
                         val routeData = backStackEntry.toRoute<Destination.ShelfProducts>()
+                        val shelfProductsViewModel = hiltViewModel<ru.kubsu.market.feature.products.presentation.viewmodel.ShelfProductsViewModel>()
                         LaunchedEffect(routeData.shelfId) {
-                            productsViewModel.loadProductsForShelf(routeData.shelfId)
+                            shelfProductsViewModel.loadProductsForShelf(routeData.shelfId)
                         }
-                        ShelfProductsScreen(viewModel = productsViewModel)
+                        ru.kubsu.market.feature.products.presentation.screen.ShelfProductsRoute(
+                            viewModel = shelfProductsViewModel,
+                            shelfId = routeData.shelfId
+                        )
                     }
 
                     composable<Destination.Employees> {
+                        val employeesViewModel = hiltViewModel<EmployeesViewModel>()
                         LaunchedEffect(Unit) {
                             employeesViewModel.loadEmployees()
                         }
-                        EmployeesScreen(viewModel = employeesViewModel)
+                        EmployeesRoute(viewModel = employeesViewModel)
                     }
 
                     composable<Destination.Me> { backStackEntry ->
                         val routeData = backStackEntry.toRoute<Destination.Me>()
+                        val shiftViewModel = hiltViewModel<ru.kubsu.market.feature.shift.presentation.viewmodel.ShiftViewModel>()
                         LaunchedEffect(routeData.employeeId) {
                             shiftViewModel.loadProfile(routeData.employeeId)
                         }
-                        ShiftScreen(
+                        ShiftRoute(
                             viewModel = shiftViewModel,
                             onLogOut = {
-                                productsViewModel.clearOrderFormed()
                                 lifecycleScope.launch {
                                     sessionManager.logout()
                                 }
@@ -322,25 +327,18 @@ class MainActivity : ComponentActivity() {
 
                     composable<Destination.Reports> { backStackEntry ->
                         val routeData = backStackEntry.toRoute<Destination.Reports>()
-                        ru.kubsu.market.feature.employees.presentation.reports.ReportsScreen(
+                        val reportsViewModel = hiltViewModel<ru.kubsu.market.feature.employees.presentation.reports.ReportsViewModel>()
+                        ru.kubsu.market.feature.employees.presentation.reports.ReportsRoute(
                             viewModel = reportsViewModel,
                             employeeId = routeData.employeeId
                         )
                     }
-
                     composable<Destination.Dictionaries> {
-                        DictionariesScreen(viewModel = dictionariesViewModel)
+                        val dictionariesViewModel = hiltViewModel<DictionariesViewModel>()
+                        DictionariesRoute(viewModel = dictionariesViewModel)
                     }
                 }
             }
         }
-    }
-
-    private fun millisUntilNextMidnight(zoneId: ZoneId): Long {
-        val now = ZonedDateTime.now(zoneId)
-        val nextMidnight = now
-            .truncatedTo(ChronoUnit.DAYS)
-            .plusDays(1)
-        return Duration.between(now, nextMidnight).toMillis().coerceAtLeast(0)
     }
 }
