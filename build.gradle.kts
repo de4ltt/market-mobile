@@ -1,3 +1,11 @@
+buildscript {
+    configurations.all {
+        resolutionStrategy {
+            force("org.jetbrains.kotlinx:kotlinx-metadata-jvm:2.2.0")
+        }
+    }
+}
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -9,7 +17,7 @@ plugins {
     alias(libs.plugins.hilt) apply false
 }
 
-subprojects {
+allprojects {
     configurations.all {
         resolutionStrategy {
             force("org.jetbrains.kotlinx:kotlinx-metadata-jvm:2.2.0")
