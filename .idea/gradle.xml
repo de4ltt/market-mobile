@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/core" />
             <option value="$PROJECT_DIR$/core/common" />
+            <option value="$PROJECT_DIR$/core/data" />
             <option value="$PROJECT_DIR$/core/database" />
             <option value="$PROJECT_DIR$/core/model" />
             <option value="$PROJECT_DIR$/core/network" />
@@ -22,6 +23,7 @@
             <option value="$PROJECT_DIR$/feature/dictionaries" />
             <option value="$PROJECT_DIR$/feature/employees" />
             <option value="$PROJECT_DIR$/feature/mainmenu" />
+            <option value="$PROJECT_DIR$/feature/products" />
             <option value="$PROJECT_DIR$/feature/receival" />
             <option value="$PROJECT_DIR$/feature/shift" />
           </set>

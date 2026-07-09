@@ -1,11 +1,12 @@
 package ru.kubsu.market.core.data.repository
 
 import ru.kubsu.market.core.database.dao.VacationDao
-import ru.kubsu.market.core.database.entity.VacationEntity
+import ru.kubsu.market.core.database.mapper.toEntity
 import ru.kubsu.market.core.model.Vacation
 import ru.kubsu.market.core.model.repository.VacationInfoRepository
 import ru.kubsu.market.core.network.api.VacationApi
-import ru.kubsu.market.core.network.dto.VacationDto
+import ru.kubsu.market.core.network.mapper.toDomain
+import ru.kubsu.market.core.network.mapper.toDto
 import javax.inject.Inject
 
 class VacationInfoRepositoryImpl @Inject constructor(
@@ -22,9 +23,9 @@ class VacationInfoRepositoryImpl @Inject constructor(
     }
 
     override suspend fun requestVacation(vacation: Vacation): Vacation {
-        val createdDto = vacationApi.requestVacation(VacationDto.fromDomain(vacation))
+        val createdDto = vacationApi.requestVacation(vacation.toDto())
         val created = createdDto.toDomain()
-        vacationDao.insertVacation(VacationEntity.fromDomain(created))
+        vacationDao.insertVacation(created.toEntity())
         return created
     }
 }

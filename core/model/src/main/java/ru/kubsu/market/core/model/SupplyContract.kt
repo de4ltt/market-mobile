@@ -1,5 +1,6 @@
 package ru.kubsu.market.core.model
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import ru.kubsu.market.core.common.serializer.LocalDateSerializer
 import java.time.LocalDate
@@ -13,27 +14,14 @@ data class SupplyContract(
     val startDate: LocalDate,
     @Serializable(with = LocalDateSerializer::class)
     val endDate: LocalDate
-) : IItemRepresentable, IDictionaryItem {
-
-    override val displayName: String
-        get() = "${supplyContractId ?: "-"} | $contractorId"
-
-    override val displayFields: Map<String, String>
-        get() = mapOf(
-            "Контрагент Id" to contractorId.toString(),
-            "Склад Id" to storageLocationId.toString(),
-            "Дата начала" to startDate.toString(),
-            "Дата окончания" to endDate.toString(),
-        )
+) : IDictionaryItem {
 
     override val endpoint: String
         get() = "supply-contracts"
     override val className: String
         get() = "Договор на поставку"
-
-    override fun getItems(fetcher: IDictionaryFetcher) {
-        fetcher.getDictionaryItems(this)
-    }
+    override val serializer: KSerializer<out IDictionaryItem>
+        get() = serializer()
 
     companion object {
         val className = "Договоры поставки"

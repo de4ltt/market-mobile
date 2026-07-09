@@ -7,22 +7,26 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ru.kubsu.market.core.model.ConfirmReportRequest
 import ru.kubsu.market.core.model.PersonnelReport
 import ru.kubsu.market.core.ui.component.ItemsRepresentationScreen
 import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
-fun ReportsScreen(
+fun ReportsRoute(
     viewModel: ReportsViewModel,
-    employeeId: Int? = null
+    employeeId: Int? = null,
+    modifier: Modifier = Modifier
 ) {
-    val state by viewModel.state.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(employeeId) {
@@ -33,14 +37,34 @@ fun ReportsScreen(
         }
     }
 
-    LaunchedEffect(error) {
-        error?.let {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-            viewModel.clearError()
+    LaunchedEffect(viewModel.uiEvent) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is ReportsUiEvent.ShowToast -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    ReportsScreen(
+        state = state,
+        employeeId = employeeId,
+        onConfirmReports = viewModel::confirmWeeklyReports,
+        onUpdateReport = viewModel::updateReport,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ReportsScreen(
+    state: ReportsUiState,
+    employeeId: Int?,
+    onConfirmReports: () -> Unit,
+    onUpdateReport: (Int, ConfirmReportRequest) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier.fillMaxSize()) {
         when (val stateValue = state) {
             is ReportsUiState.Loading -> {
                 CircularProgressIndicator(
@@ -55,14 +79,12 @@ fun ReportsScreen(
                         className = PersonnelReport.className,
                         buttonText = "Утвердить отчёты",
                         buttonEnabled = stateValue.reports.isNotEmpty(),
-                        onButtonClick = {
-                            viewModel.confirmWeeklyReports()
-                        },
+                        onButtonClick = onConfirmReports,
                         container = { report ->
                             ReportRepresentationCard(
-                                report = report as PersonnelReport,
+                                report = report,
                                 onEdit = { cRequest ->
-                                    viewModel.updateReport(report.personnelReportId!!, cRequest)
+                                    onUpdateReport(report.personnelReportId!!, cRequest)
                                 }
                             )
                         }
@@ -73,9 +95,9 @@ fun ReportsScreen(
                         className = PersonnelReport.className,
                         container = { report ->
                             ReportRepresentationCard(
-                                report = report as PersonnelReport,
+                                report = report,
                                 onEdit = { cRequest ->
-                                    viewModel.updateReport(report.personnelReportId!!, cRequest)
+                                    onUpdateReport(report.personnelReportId!!, cRequest)
                                 }
                             )
                         }
@@ -86,9 +108,22 @@ fun ReportsScreen(
                 Text(
                     text = stateValue.message,
                     color = Colors.RED,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
         }
     }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun ReportsScreenLoadingPreview() {
+    ReportsScreen(
+        state = ReportsUiState.Loading,
+        employeeId = null,
+        onConfirmReports = {},
+        onUpdateReport = { _, _ -> }
+    )
 }

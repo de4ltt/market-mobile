@@ -1,14 +1,13 @@
 package ru.kubsu.market.feature.shift.domain.usecase
 
 import ru.kubsu.market.core.model.Vacation
-import ru.kubsu.market.feature.shift.domain.ShiftRepository
-
+import ru.kubsu.market.core.model.repository.VacationInfoRepository
 import javax.inject.Inject
 
 class RequestShiftVacationUseCase @Inject constructor(
-    private val repository: ShiftRepository
+    private val vacationInfoRepository: VacationInfoRepository
 ) {
     suspend operator fun invoke(vacation: Vacation) {
-        repository.requestVacation(vacation)
+        vacationInfoRepository.requestVacation(vacation)
     }
 }

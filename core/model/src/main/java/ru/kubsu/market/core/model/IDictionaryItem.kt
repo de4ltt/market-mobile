@@ -1,11 +1,9 @@
 package ru.kubsu.market.core.model
 
-interface IDictionaryFetcher {
-    fun getDictionaryItems(item: IDictionaryItem)
-}
+import kotlinx.serialization.KSerializer
 
 interface IDictionaryItem {
     val endpoint: String
     val className: String
-    fun getItems(fetcher: IDictionaryFetcher)
+    val serializer: KSerializer<out IDictionaryItem>
 }

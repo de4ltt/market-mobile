@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import androidx.room.Room
 import ru.kubsu.market.core.database.AppDatabase
 import ru.kubsu.market.core.database.dao.EmployeeDao
 import ru.kubsu.market.core.database.dao.VacationDao
@@ -20,7 +21,13 @@ object DatabaseModule {
     fun provideAppDatabase(
         @ApplicationContext context: Context
     ): AppDatabase {
-        return AppDatabase.getDatabase(context)
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "market_database"
+        )
+        .fallbackToDestructiveMigration()
+        .build()
     }
 
     @Provides

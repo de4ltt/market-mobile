@@ -1,5 +1,6 @@
 package ru.kubsu.market.core.model
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import ru.kubsu.market.core.common.serializer.BigDecimalSerializer
 import java.math.BigDecimal
@@ -12,27 +13,14 @@ data class Truck(
     @Serializable(with = BigDecimalSerializer::class)
     val capacity: BigDecimal,
     val driverId: Int
-) : IItemRepresentable, IDictionaryItem {
-
-    override val displayName: String
-        get() = "${truckId ?: "-"} | $licencePlate"
-
-    override val displayFields: Map<String, String>
-        get() = mapOf(
-            "Госномер" to licencePlate,
-            "Модель" to model,
-            "Грузоподъёмность" to capacity.toString(),
-            "Водитель Id" to driverId.toString(),
-        )
+) : IDictionaryItem {
 
     override val endpoint: String
         get() = "trucks"
     override val className: String
         get() = "Грузовики"
-
-    override fun getItems(fetcher: IDictionaryFetcher) {
-        fetcher.getDictionaryItems(this)
-    }
+    override val serializer: KSerializer<out IDictionaryItem>
+        get() = serializer()
 
     companion object {
         val className = "Грузовики"

@@ -1,31 +1,25 @@
 package ru.kubsu.market.feature.employees.data
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.kubsu.market.core.database.dao.EmployeeDao
 import ru.kubsu.market.core.database.dao.VacationDao
-import ru.kubsu.market.core.database.entity.EmployeeEntity
-import ru.kubsu.market.core.database.entity.VacationEntity
+import ru.kubsu.market.core.database.mapper.toDomain
+import ru.kubsu.market.core.database.mapper.toEntity
 import ru.kubsu.market.core.model.Employee
 import ru.kubsu.market.core.model.Position
 import ru.kubsu.market.core.model.Vacation
+import ru.kubsu.market.core.network.api.EmployeesApi
+import ru.kubsu.market.core.network.mapper.toDomain
+import ru.kubsu.market.core.network.mapper.toDto
 import ru.kubsu.market.feature.employees.domain.EmployeesRepository
+import javax.inject.Inject
 
-class EmployeesRepositoryImpl(
-    private val httpClient: HttpClient,
+class EmployeesRepositoryImpl @Inject constructor(
+    private val employeesApi: EmployeesApi,
     private val employeeDao: EmployeeDao,
     private val vacationDao: VacationDao
 ) : EmployeesRepository {
-
-    private val baseUrl = ru.kubsu.market.core.network.ApiConfig.BASE_URL
 
     override fun getEmployeesFlow(): Flow<List<Employee>> {
         return employeeDao.getEmployees().map { entities ->
@@ -40,49 +34,44 @@ class EmployeesRepositoryImpl(
     }
 
     override suspend fun refreshEmployees() {
-        val remoteEmployees = httpClient.get("$baseUrl/employees").body<List<Employee>>()
-        val entities = remoteEmployees.map { EmployeeEntity.fromDomain(it) }
+        val remoteEmployees = employeesApi.getEmployees().map { it.toDomain() }
+        val entities = remoteEmployees.map { it.toEntity() }
         employeeDao.clearAll()
         employeeDao.insertEmployees(entities)
     }
 
     override suspend fun refreshVacations() {
-        val remoteVacations = httpClient.get("$baseUrl/vacations").body<List<Vacation>>()
-        val entities = remoteVacations.map { VacationEntity.fromDomain(it) }
+        val remoteVacations = employeesApi.getVacations().map { it.toDomain() }
+        val entities = remoteVacations.map { it.toEntity() }
         vacationDao.clearAll()
         vacationDao.insertVacations(entities)
     }
 
     override suspend fun getPositions(): List<Position> {
-        return httpClient.get("$baseUrl/positions").body<List<Position>>()
+        return employeesApi.getPositions().map { it.toDomain() }
     }
 
     override suspend fun addEmployee(employee: Employee) {
-        val added = httpClient.post("$baseUrl/employees") {
-            contentType(ContentType.Application.Json)
-            setBody(employee)
-        }.body<Employee>()
-        employeeDao.insertEmployee(EmployeeEntity.fromDomain(added))
+        val added = employeesApi.addEmployee(employee.toDto()).toDomain()
+        employeeDao.insertEmployee(added.toEntity())
     }
 
     override suspend fun deleteEmployee(employeeId: Int) {
-        httpClient.delete("$baseUrl/employees/$employeeId")
+        employeesApi.deleteEmployee(employeeId)
         employeeDao.deleteEmployee(employeeId)
     }
 
     override suspend fun requestVacation(vacation: Vacation) {
-        val created = httpClient.post("$baseUrl/vacations") {
-            contentType(ContentType.Application.Json)
-            setBody(vacation)
-        }.body<Vacation>()
-        vacationDao.insertVacation(VacationEntity.fromDomain(created))
+        val created = employeesApi.requestVacation(vacation.toDto()).toDomain()
+        vacationDao.insertVacation(created.toEntity())
     }
 
     override suspend fun respondToVacation(vacationId: Int, approve: Boolean) {
-        val path = if (approve) "approve" else "decline"
-        val updated = httpClient.post("$baseUrl/vacations/$vacationId/$path") {
-            contentType(ContentType.Application.Json)
-        }.body<Vacation>()
-        vacationDao.insertVacation(VacationEntity.fromDomain(updated))
+        val updated = employeesApi.respondToVacation(vacationId, approve).toDomain()
+        vacationDao.insertVacation(updated.toEntity())
+    }
+
+    override suspend fun getEmployeeProfile(employeeId: Int): Employee {
+        return employeesApi.getEmployeeProfile(employeeId).toDomain()
     }
 }

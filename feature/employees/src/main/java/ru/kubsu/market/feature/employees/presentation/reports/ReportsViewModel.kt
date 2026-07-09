@@ -1,11 +1,14 @@
 package ru.kubsu.market.feature.employees.presentation.reports
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.kubsu.market.core.model.ConfirmReportRequest
 import ru.kubsu.market.core.model.PersonnelReport
@@ -15,27 +18,32 @@ import ru.kubsu.market.feature.employees.domain.usecase.GetWeeklyReportsUseCase
 import ru.kubsu.market.feature.employees.domain.usecase.UpdateReportUseCase
 import javax.inject.Inject
 
-sealed interface ReportsUiState {
-    data object Loading : ReportsUiState
-    data class Success(val reports: List<PersonnelReport>) : ReportsUiState
-    data class Error(val message: String) : ReportsUiState
-}
-
 @HiltViewModel
 class ReportsViewModel @Inject constructor(
     private val getWeeklyReportsUseCase: GetWeeklyReportsUseCase,
     private val getEmployeeReportsUseCase: GetEmployeeReportsUseCase,
     private val updateReportUseCase: UpdateReportUseCase,
-    private val confirmWeeklyReportsUseCase: ConfirmWeeklyReportsUseCase
+    private val confirmWeeklyReportsUseCase: ConfirmWeeklyReportsUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ReportsUiState>(ReportsUiState.Loading)
     val state: StateFlow<ReportsUiState> = _state.asStateFlow()
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    private val _uiEvent = Channel<ReportsUiEvent>(Channel.BUFFERED)
+    val uiEvent = _uiEvent.receiveAsFlow()
 
-    private var currentEmployeeId: Int? = null
+    private var currentEmployeeId: Int?
+        get() = savedStateHandle[KEY_EMPLOYEE_ID]
+        set(value) {
+            savedStateHandle[KEY_EMPLOYEE_ID] = value
+        }
+
+    init {
+        currentEmployeeId?.let { employeeId ->
+            loadEmployeeReports(employeeId)
+        }
+    }
 
     fun loadReports() {
         currentEmployeeId = null
@@ -74,7 +82,7 @@ class ReportsViewModel @Inject constructor(
                     }
                     _state.value = ReportsUiState.Success(newReports)
                 } catch (e: Exception) {
-                    _error.value = e.message ?: "Ошибка при обновлении отчета"
+                    _uiEvent.send(ReportsUiEvent.ShowToast(e.message ?: "Ошибка при обновлении отчета"))
                 }
             }
         }
@@ -86,20 +94,20 @@ class ReportsViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     confirmWeeklyReportsUseCase()
-                    // Reload
-                    if (currentEmployeeId != null) {
-                        loadEmployeeReports(currentEmployeeId!!)
+                    val empId = currentEmployeeId
+                    if (empId != null) {
+                        loadEmployeeReports(empId)
                     } else {
                         loadReports()
                     }
                 } catch (e: Exception) {
-                    _error.value = e.message ?: "Ошибка при подтверждении отчетов"
+                    _uiEvent.send(ReportsUiEvent.ShowToast(e.message ?: "Ошибка при подтверждении отчетов"))
                 }
             }
         }
     }
 
-    fun clearError() {
-        _error.value = null
+    companion object {
+        private const val KEY_EMPLOYEE_ID = "current_employee_id"
     }
 }

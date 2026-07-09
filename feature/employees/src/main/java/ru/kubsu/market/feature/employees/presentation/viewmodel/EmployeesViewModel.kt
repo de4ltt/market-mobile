@@ -1,19 +1,23 @@
 package ru.kubsu.market.feature.employees.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.kubsu.market.core.model.Employee
 import ru.kubsu.market.core.model.Position
 import ru.kubsu.market.core.model.Vacation
-import ru.kubsu.market.feature.employees.EmployeesScreenState
 import ru.kubsu.market.feature.employees.domain.usecase.*
+import ru.kubsu.market.feature.employees.presentation.model.EmployeesScreenState
+import ru.kubsu.market.feature.employees.presentation.model.EmployeesUiEvent
+import javax.inject.Inject
 
 @HiltViewModel
 class EmployeesViewModel @Inject constructor(
@@ -25,22 +29,29 @@ class EmployeesViewModel @Inject constructor(
     private val requestVacationUseCase: RequestVacationUseCase,
     private val respondToVacationUseCase: RespondToVacationUseCase,
     private val refreshEmployeesUseCase: RefreshEmployeesUseCase,
-    private val refreshVacationsUseCase: RefreshVacationsUseCase
+    private val refreshVacationsUseCase: RefreshVacationsUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<EmployeesScreenState>(EmployeesScreenState.Loading)
     val state: StateFlow<EmployeesScreenState> = _state.asStateFlow()
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    private val _uiEvent = Channel<EmployeesUiEvent>(Channel.BUFFERED)
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     private var cachedPositions: List<Position> = emptyList()
-    private var isEmployeesMode = true
+
+    private var isEmployeesMode: Boolean
+        get() = savedStateHandle[KEY_IS_EMPLOYEES_MODE] ?: true
+        set(value) {
+            savedStateHandle[KEY_IS_EMPLOYEES_MODE] = value
+        }
 
     init {
         viewModelScope.launch {
             getEmployeesUseCase().collectLatest { employees ->
-                if (isEmployeesMode && _state.value !is EmployeesScreenState.Loading) {
+                val currentState = _state.value
+                if (isEmployeesMode && currentState !is EmployeesScreenState.Loading && currentState !is EmployeesScreenState.Error) {
                     _state.value = EmployeesScreenState.Employees(employees, cachedPositions)
                 }
             }
@@ -48,10 +59,18 @@ class EmployeesViewModel @Inject constructor(
 
         viewModelScope.launch {
             getVacationsUseCase().collectLatest { vacations ->
-                if (!isEmployeesMode && _state.value !is EmployeesScreenState.Loading) {
+                val currentState = _state.value
+                if (!isEmployeesMode && currentState !is EmployeesScreenState.Loading && currentState !is EmployeesScreenState.Error) {
                     _state.value = EmployeesScreenState.Vacations(vacations)
                 }
             }
+        }
+
+        // Первичная загрузка в зависимости от сохраненной вкладки
+        if (isEmployeesMode) {
+            loadEmployees()
+        } else {
+            loadVacations()
         }
     }
 
@@ -63,7 +82,9 @@ class EmployeesViewModel @Inject constructor(
                 cachedPositions = getPositionsUseCase()
                 refreshEmployeesUseCase()
             } catch (e: Exception) {
-                _error.value = e.message ?: "Ошибка загрузки сотрудников"
+                val errorMessage = e.message ?: "Ошибка загрузки сотрудников"
+                _state.value = EmployeesScreenState.Error(errorMessage)
+                _uiEvent.send(EmployeesUiEvent.ShowToast(errorMessage))
             }
         }
     }
@@ -75,7 +96,9 @@ class EmployeesViewModel @Inject constructor(
             try {
                 refreshVacationsUseCase()
             } catch (e: Exception) {
-                _error.value = e.message ?: "Ошибка загрузки отпусков"
+                val errorMessage = e.message ?: "Ошибка загрузки отпусков"
+                _state.value = EmployeesScreenState.Error(errorMessage)
+                _uiEvent.send(EmployeesUiEvent.ShowToast(errorMessage))
             }
         }
     }
@@ -85,7 +108,7 @@ class EmployeesViewModel @Inject constructor(
             try {
                 addEmployeeUseCase(employee)
             } catch (e: Exception) {
-                _error.value = e.message ?: "Ошибка при добавлении сотрудника"
+                _uiEvent.send(EmployeesUiEvent.ShowToast(e.message ?: "Ошибка при добавлении сотрудника"))
             }
         }
     }
@@ -95,7 +118,7 @@ class EmployeesViewModel @Inject constructor(
             try {
                 deleteEmployeeUseCase(employeeId)
             } catch (e: Exception) {
-                _error.value = e.message ?: "Ошибка при удалении сотрудника"
+                _uiEvent.send(EmployeesUiEvent.ShowToast(e.message ?: "Ошибка при удалении сотрудника"))
             }
         }
     }
@@ -105,7 +128,7 @@ class EmployeesViewModel @Inject constructor(
             try {
                 requestVacationUseCase(vacation)
             } catch (e: Exception) {
-                _error.value = e.message ?: "Ошибка при запросе отпуска"
+                _uiEvent.send(EmployeesUiEvent.ShowToast(e.message ?: "Ошибка при запросе отпуска"))
             }
         }
     }
@@ -115,12 +138,12 @@ class EmployeesViewModel @Inject constructor(
             try {
                 respondToVacationUseCase(vacationId, approve)
             } catch (e: Exception) {
-                _error.value = e.message ?: "Ошибка при ответе на отпуск"
+                _uiEvent.send(EmployeesUiEvent.ShowToast(e.message ?: "Ошибка при ответе на отпуск"))
             }
         }
     }
 
-    fun clearError() {
-        _error.value = null
+    companion object {
+        private const val KEY_IS_EMPLOYEES_MODE = "is_employees_mode"
     }
 }

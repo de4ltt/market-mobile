@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import ru.kubsu.market.core.model.Product
 import ru.kubsu.market.core.model.ProductPrice
 import ru.kubsu.market.core.model.pricing.PriceFormationResult
+import ru.kubsu.market.core.ui.mapping.toUiDisplayable
 import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
@@ -54,11 +55,11 @@ fun ProductRepresentationCard(
                         product.barcode?.let {
                             ru.kubsu.market.core.ui.component.BarCode(code = it)
                         }
-                        ru.kubsu.market.core.ui.component.FieldsRepresentation(map = product.displayFields)
+                        ru.kubsu.market.core.ui.component.FieldsRepresentation(map = product.toUiDisplayable().displayFields)
                     }
                 } else {
                     androidx.compose.material3.Text(
-                        text = product.displayName,
+                        text = product.toUiDisplayable().displayName,
                         fontSize = 20.sp,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
                         color = Colors.WHITE

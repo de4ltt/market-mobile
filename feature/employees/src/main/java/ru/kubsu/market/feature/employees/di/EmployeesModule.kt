@@ -1,37 +1,28 @@
 package ru.kubsu.market.feature.employees.di
 
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.ktor.client.HttpClient
-import ru.kubsu.market.core.database.dao.EmployeeDao
-import ru.kubsu.market.core.database.dao.VacationDao
 import ru.kubsu.market.feature.employees.data.EmployeesRepositoryImpl
-import ru.kubsu.market.feature.employees.domain.EmployeesRepository
 import ru.kubsu.market.feature.employees.data.ReportsRepositoryImpl
+import ru.kubsu.market.feature.employees.domain.EmployeesRepository
 import ru.kubsu.market.feature.employees.domain.ReportsRepository
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object EmployeesModule {
+interface EmployeesModule {
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideEmployeesRepository(
-        httpClient: HttpClient,
-        employeeDao: EmployeeDao,
-        vacationDao: VacationDao
-    ): EmployeesRepository {
-        return EmployeesRepositoryImpl(httpClient, employeeDao, vacationDao)
-    }
+    fun bindEmployeesRepository(
+        impl: EmployeesRepositoryImpl
+    ): EmployeesRepository
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideReportsRepository(
-        httpClient: HttpClient
-    ): ReportsRepository {
-        return ReportsRepositoryImpl(httpClient)
-    }
+    fun bindReportsRepository(
+        impl: ReportsRepositoryImpl
+    ): ReportsRepository
 }

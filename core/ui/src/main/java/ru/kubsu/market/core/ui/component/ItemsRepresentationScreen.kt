@@ -1,12 +1,5 @@
 package ru.kubsu.market.core.ui.component
 
-import ru.kubsu.market.core.model.IItemRepresentable
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.material3.CircularProgressIndicator
-import coil3.compose.SubcomposeAsyncImage
-
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,12 +10,10 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,90 +28,61 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.kubsu.market.core.ui.model.UiDisplayable
 import ru.kubsu.market.core.ui.R as CoreUiR
-import ru.kubsu.market.core.ui.component.AppButton
 import ru.kubsu.market.core.ui.theme.Colors
 
 @Composable
 fun ItemsRepresentationScreen(
-    items: List<IItemRepresentable>,
+    items: List<UiDisplayable>,
     className: String
-) = Column(
-    verticalArrangement = Arrangement.spacedBy(20.dp)
-) {
-
-    Text(
-        text = className,
-        fontSize = 25.sp,
-        fontWeight = FontWeight.Black,
-        color = Colors.WHITE
-    )
-
-    Crossfade(
-        modifier = Modifier.weight(1f),
-        targetState = items.isNotEmpty()
-    ) {
-        if (it) {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(13.dp)
-            ) { items(items) { item -> ItemRepresentationCard(item) } }
-        } else {
-            Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
-                Text(
-                    text = "Тут ничего нет",
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Colors.LIGHT_GRAY
-                )
-            }
-        }
-    }
-}
+) = ItemsRepresentationScreen(
+    items = items,
+    className = className,
+    container = { item -> ItemRepresentationCard(item = item) }
+)
 
 @Composable
-fun ItemsRepresentationScreen(
-    items: List<IItemRepresentable>,
+fun <T> ItemsRepresentationScreen(
+    items: List<T>,
     className: String? = null,
-    container: @Composable (IItemRepresentable) -> Unit = { item -> ItemRepresentationCard(item = item) },
-    onClick: (IItemRepresentable) -> Unit = {},
+    container: @Composable (T) -> Unit,
+    onClick: (T) -> Unit = {},
     addDialog: (@Composable (onDismiss: () -> Unit) -> Unit)? = null,
-    onDelete: ((IItemRepresentable) -> Unit)? = null,
-    buttonText: String,
-    onButtonClick: () -> Unit,
+    onDelete: ((T) -> Unit)? = null,
+    buttonText: String? = null,
+    onButtonClick: (() -> Unit)? = null,
     buttonEnabled: Boolean = true
 ) {
-
     var isDialogOpened by remember { mutableStateOf(false) }
 
-    if (isDialogOpened)
-        addDialog?.let {
-            it(
-                { isDialogOpened = false },
-            )
+    if (isDialogOpened) {
+        addDialog?.let { dialog ->
+            dialog { isDialogOpened = false }
         }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier.fillMaxSize()
         ) {
-
-            className?.let {
+/*            className?.let {
                 Text(
-                    text = className,
+                    text = it,
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Black,
                     color = Colors.WHITE
                 )
-            }
+            }*/
 
             Crossfade(
                 modifier = Modifier.weight(1f),
                 targetState = items.isNotEmpty()
-            ) {
-                if (it) {
+            ) { hasItems ->
+                if (hasItems) {
                     LazyColumn(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(13.dp)
                     ) {
                         items(items) { item ->
@@ -152,7 +114,7 @@ fun ItemsRepresentationScreen(
                         }
                     }
                 } else {
-                    Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
                             text = "Тут ничего нет",
                             fontSize = 19.sp,
@@ -182,263 +144,21 @@ fun ItemsRepresentationScreen(
                         ),
                     painter = painterResource(CoreUiR.drawable.plus),
                     tint = Colors.WHITE,
-                    contentDescription = "delete_icon"
+                    contentDescription = "add_icon"
                 )
             }
         }
 
-        AppButton(
-            enabled = buttonEnabled,
-            text = buttonText,
-            onClick = onButtonClick,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp)
-                .fillMaxWidth()
-        )
-    }
-}
-
-
-@Composable
-fun ItemsRepresentationScreen(
-    items: List<IItemRepresentable>,
-    className: String? = null,
-    container: @Composable (IItemRepresentable) -> Unit = { item -> ItemRepresentationCard(item = item) },
-    onClick: (IItemRepresentable) -> Unit = {},
-    addDialog: (@Composable (onDismiss: () -> Unit) -> Unit)? = null,
-    onDelete: ((IItemRepresentable) -> Unit)? = null
-) {
-
-    var isDialogOpened by remember { mutableStateOf(false) }
-
-    if (isDialogOpened)
-        addDialog?.let {
-            it(
-                { isDialogOpened = false },
-            )
-        }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-
-            className?.let {
-                Text(
-                    text = className,
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.Black,
-                    color = Colors.WHITE
-                )
-            }
-
-            Crossfade(
-                modifier = Modifier.weight(1f),
-                targetState = items.isNotEmpty()
-            ) {
-                if (it) {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(13.dp)
-                    ) {
-                        items(items) { item ->
-                            Box(
-                                modifier = Modifier
-                                    .wrapContentSize()
-                                    .clickable(
-                                        onClick = { onClick(item) },
-                                        indication = null,
-                                        interactionSource = null
-                                    )
-                            ) {
-                                container(item)
-
-                                onDelete?.let { deleteAction ->
-                                    Icon(
-                                        modifier = Modifier
-                                            .fillMaxWidth(0.15f)
-                                            .align(Alignment.TopEnd)
-                                            .clickable(
-                                                onClick = { deleteAction(item) }
-                                            ),
-                                        painter = painterResource(CoreUiR.drawable.bin),
-                                        tint = Colors.ORANGE,
-                                        contentDescription = "delete_icon"
-                                    )
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "Тут ничего нет",
-                            fontSize = 19.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = Colors.LIGHT_GRAY
-                        )
-                    }
-                }
-            }
-        }
-
-        addDialog?.let {
-            Box(
+        if (buttonText != null && onButtonClick != null) {
+            AppButton(
+                enabled = buttonEnabled,
+                text = buttonText,
+                onClick = onButtonClick,
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .clip(CircleShape)
-                    .fillMaxWidth(0.15f)
-                    .aspectRatio(1f)
-                    .background(Colors.DARK_GRAY)
-                    .padding(10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .clickable(
-                            onClick = { isDialogOpened = true }
-                        ),
-                    painter = painterResource(CoreUiR.drawable.plus),
-                    tint = Colors.WHITE,
-                    contentDescription = "delete_icon"
-                )
-            }
-        }
-    }
-}
-
-
-@Composable
-fun ItemRepresentationCardExpanded(
-    item: IItemRepresentable,
-    onDelete: (() -> Unit)? = null,
-    onClick: (IItemRepresentable) -> Unit = {},
-) = Box(
-    modifier = Modifier
-        .clip(RoundedCornerShape(12.dp))
-        .background(color = Colors.DARK_GRAY)
-        .fillMaxWidth()
-        .wrapContentHeight()
-        .padding(20.dp)
-        .clickable(
-            onClick = { onClick(item) },
-            indication = null,
-            interactionSource = null
-        )
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        item.barcode?.let { BarCode(code = it) }
-        FieldsRepresentation(map = item.displayFields)
-    }
-
-    onDelete?.let {
-        Icon(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .clickable(
-                    onClick = onDelete,
-                    indication = null,
-                    interactionSource = null
-                ),
-            painter = painterResource(CoreUiR.drawable.bin),
-            tint = Colors.RED,
-            contentDescription = "delete_icon"
-        )
-    }
-}
-
-@Composable
-fun ItemRepresentationCard(
-    item: IItemRepresentable
-) {
-
-    var isExpanded by remember { mutableStateOf(false) }
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(color = Colors.DARK_GRAY)
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(20.dp)
-            .clickable(
-                onClick = { isExpanded = !isExpanded },
-                indication = null,
-                interactionSource = null
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 20.dp)
+                    .fillMaxWidth()
             )
-    ) {
-        AnimatedContent(
-            targetState = isExpanded,
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(Alignment.Top)
-        ) { expanded ->
-            if (expanded) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    item.barcode?.let { BarCode(code = it) }
-                    FieldsRepresentation(map = item.displayFields)
-                }
-            } else {
-                Text(
-                    text = item.displayName,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Colors.WHITE
-                )
-            }
         }
-    }
-}
-
-@Composable
-fun BarCode(
-    code: String,
-    modifier: Modifier = Modifier
-) {
-    val url = remember(code) {
-        "https://www.scandit.com/api/generate-barcode/?type=code128&value=$code"
-    }
-
-    Box(
-        modifier = modifier
-            .background(Colors.WHITE, RoundedCornerShape(12.dp))
-            .padding(5.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        SubcomposeAsyncImage(
-            model = url,
-            contentDescription = "Barcode",
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-            loading = {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        strokeWidth = 3.dp,
-                        color = Colors.DARK_BLUE
-                    )
-                }
-            },
-            error = {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Не удалось загрузить штрихкод",
-                        color = Colors.DARK_GRAY
-                    )
-                }
-            }
-        )
     }
 }

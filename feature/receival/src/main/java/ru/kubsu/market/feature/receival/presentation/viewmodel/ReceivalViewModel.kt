@@ -3,21 +3,18 @@ package ru.kubsu.market.feature.receival.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.kubsu.market.core.model.ReceivedProduct
 import ru.kubsu.market.feature.receival.domain.usecase.GetReceivedProductsToResolveUseCase
 import ru.kubsu.market.feature.receival.domain.usecase.ResolveProductsUseCase
-
-sealed interface ReceivalUiState {
-    data object Loading : ReceivalUiState
-    data class Success(val toResolveList: List<ReceivedProduct>) : ReceivalUiState
-    data class Error(val message: String) : ReceivalUiState
-    data object Finished : ReceivalUiState
-}
+import ru.kubsu.market.feature.receival.presentation.model.ReceivalUiEvent
+import ru.kubsu.market.feature.receival.presentation.model.ReceivalUiState
+import javax.inject.Inject
 
 @HiltViewModel
 class ReceivalViewModel @Inject constructor(
@@ -27,6 +24,9 @@ class ReceivalViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<ReceivalUiState>(ReceivalUiState.Loading)
     val uiState: StateFlow<ReceivalUiState> = _uiState.asStateFlow()
+
+    private val _uiEvent = Channel<ReceivalUiEvent>(Channel.BUFFERED)
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     fun loadProducts() {
         _uiState.value = ReceivalUiState.Loading
@@ -49,11 +49,12 @@ class ReceivalViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 resolveProductsUseCase(acceptedProducts, refusedProducts, employeeId)
-                _uiState.value = ReceivalUiState.Finished
+                _uiEvent.send(ReceivalUiEvent.ReceivalFinished)
             } catch (e: Exception) {
-                _uiState.value = ReceivalUiState.Error(e.message ?: "Ошибка при сохранении результатов приёмки")
+                val errorMessage = e.message ?: "Ошибка при сохранении результатов приёмки"
+                _uiState.value = ReceivalUiState.Error(errorMessage)
+                _uiEvent.send(ReceivalUiEvent.ShowToast(errorMessage))
             }
         }
     }
 }
-

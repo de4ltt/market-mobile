@@ -40,7 +40,7 @@ class HttpClientProvider(
             install(Logging) {
                 logger = object : Logger {
                     override fun log(message: String) {
-                        println("HTTP LOG: $message")
+                        android.util.Log.d("HttpClient", message)
                     }
                 }
                 level = LogLevel.ALL
