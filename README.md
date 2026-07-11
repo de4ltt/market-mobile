@@ -2,6 +2,8 @@
 
 An Android application built with Kotlin and Jetpack Compose designed for retail and warehouse management. The app provides various tools for different employee roles (Director, Commodity Expert, Storekeeper, Seller) to manage shifts, track working hours, control supply shipments, handle warehouse inventory, and view corporate directories.
 
+<img width="3320" height="4840" alt="Group 2" src="https://github.com/user-attachments/assets/5b71a8a8-89f4-4cc5-a752-466903a7b4fa" />
+
 ---
 
 ## Tech Stack
